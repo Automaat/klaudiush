@@ -237,6 +237,19 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 			),
 		),
 	)
+
+	registry.Register(
+		filevalidators.NewWorkflowValidator(log),
+		validator.And(
+			validator.EventTypeIs(hook.PreToolUse),
+			validator.ToolTypeIn(hook.Write, hook.Edit),
+			validator.FilePathContains(".github/workflows/"),
+			validator.Or(
+				validator.FileExtensionIs(".yml"),
+				validator.FileExtensionIs(".yaml"),
+			),
+		),
+	)
 }
 
 func truncate(s string, maxLen int) string {
