@@ -21,10 +21,11 @@ var (
 
 // JSONInput represents the raw JSON input structure.
 type JSONInput struct {
-	ToolName  string          `json:"tool_name,omitempty"`
-	Tool      string          `json:"tool,omitempty"`
-	ToolInput json.RawMessage `json:"tool_input,omitempty"`
-	Command   string          `json:"command,omitempty"`
+	ToolName         string          `json:"tool_name,omitempty"`
+	Tool             string          `json:"tool,omitempty"`
+	ToolInput        json.RawMessage `json:"tool_input,omitempty"`
+	Command          string          `json:"command,omitempty"`
+	NotificationType string          `json:"notification_type,omitempty"`
 }
 
 // JSONParser parses JSON input from stdin or environment variable.
@@ -84,10 +85,11 @@ func (p *JSONParser) Parse(eventType hook.EventType) (*hook.Context, error) {
 	}
 
 	ctx := &hook.Context{
-		EventType: eventType,
-		ToolName:  hook.ToolType(toolName),
-		ToolInput: toolInput,
-		RawJSON:   string(jsonBytes),
+		EventType:        eventType,
+		ToolName:         hook.ToolType(toolName),
+		ToolInput:        toolInput,
+		NotificationType: input.NotificationType,
+		RawJSON:          string(jsonBytes),
 	}
 
 	return ctx, nil

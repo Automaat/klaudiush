@@ -81,6 +81,9 @@ type Context struct {
 	// ToolInput contains the tool-specific input parameters.
 	ToolInput ToolInput
 
+	// NotificationType is the type of notification (for Notification events).
+	NotificationType string
+
 	// RawJSON contains the original JSON input for advanced parsing.
 	RawJSON string
 }

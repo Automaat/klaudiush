@@ -14,6 +14,7 @@ import (
 	"github.com/smykla-labs/claude-hooks/internal/validator"
 	filevalidators "github.com/smykla-labs/claude-hooks/internal/validators/file"
 	gitvalidators "github.com/smykla-labs/claude-hooks/internal/validators/git"
+	notificationvalidators "github.com/smykla-labs/claude-hooks/internal/validators/notification"
 	"github.com/smykla-labs/claude-hooks/pkg/hook"
 	"github.com/smykla-labs/claude-hooks/pkg/logger"
 )
@@ -81,15 +82,6 @@ func run(_ *cobra.Command, _ []string) error {
 		"debug", debugMode,
 		"trace", traceMode,
 	)
-
-	// Handle Notification event
-	if eventType == hook.Notification {
-		// Send bell character to trigger dock bounce
-		_, _ = fmt.Fprint(os.Stdout, "\a")
-		log.Info("notification bell sent")
-
-		return nil
-	}
 
 	// Parse JSON input
 	jsonParser := parser.NewJSONParser(os.Stdin)
@@ -249,6 +241,12 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 				validator.FileExtensionIs(".yaml"),
 			),
 		),
+	)
+
+	// Notification validators
+	registry.Register(
+		notificationvalidators.NewBellValidator(log),
+		validator.EventTypeIs(hook.Notification),
 	)
 }
 
