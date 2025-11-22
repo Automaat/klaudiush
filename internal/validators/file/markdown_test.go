@@ -108,9 +108,9 @@ code
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 2: Code block should have empty line before it"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 2: Code block should have empty line before it"))
 			})
 
 			It("passes when code block has empty line before", func() {
@@ -152,9 +152,9 @@ code2
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 8: Code block should have empty line before it"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 8: Code block should have empty line before it"))
 			})
 		})
 
@@ -166,9 +166,9 @@ code2
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 2: First list item should have empty line before it"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 2: First list item should have empty line before it"))
 			})
 
 			It("passes when first list item has empty line before", func() {
@@ -195,12 +195,12 @@ Text
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 2: First list item"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 4: First list item"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 6: First list item"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 8: First list item"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 2: First list item"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 4: First list item"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 6: First list item"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 8: First list item"))
 			})
 
 			It("handles indented list items", func() {
@@ -210,9 +210,9 @@ Text
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 2: First list item"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 2: First list item"))
 			})
 
 			It("does not warn for consecutive list items", func() {
@@ -236,9 +236,9 @@ Text immediately after
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
 			})
 
 			It("passes when header has empty line after", func() {
@@ -263,11 +263,11 @@ Text
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 3: Header should have empty line after it"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 5: Header should have empty line after it"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Header should have empty line after it"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 5: Header should have empty line after it"))
 			})
 		})
 
@@ -292,9 +292,9 @@ Text
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Details["warnings"]).To(ContainSubstring("Previous line: '" + strings.Repeat("x", 60)))
-				Expect(result.Details["warnings"]).NotTo(ContainSubstring(strings.Repeat("x", 70)))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Details["errors"]).To(ContainSubstring("Previous line: '" + strings.Repeat("x", 60)))
+				Expect(result.Details["errors"]).NotTo(ContainSubstring(strings.Repeat("x", 70)))
 			})
 
 			It("handles empty lines properly", func() {
@@ -321,11 +321,11 @@ code
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(Equal("Markdown formatting warnings"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 3: First list item should have empty line before it"))
-				Expect(result.Details["warnings"]).To(ContainSubstring("Line 4: Code block should have empty line before it"))
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: First list item should have empty line before it"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 4: Code block should have empty line before it"))
 			})
 
 			It("handles real-world markdown example", func() {

@@ -71,8 +71,7 @@ tasks:
   fmt:
     desc: Format code
     cmds:
-      - go fmt ./...
-      - goimports -w .
+      - golangci-lint run --fix
 
   install:
     desc: Install binary to ~/.claude/hooks/

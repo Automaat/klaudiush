@@ -46,11 +46,11 @@ func (v *MarkdownValidator) Validate(ctx *hook.Context) *validator.Result {
 	warnings := v.analyzeMarkdown(content)
 
 	if len(warnings) > 0 {
-		message := "Markdown formatting warnings"
+		message := "Markdown formatting errors"
 		details := map[string]string{
-			"warnings": strings.Join(warnings, "\n"),
+			"errors": strings.Join(warnings, "\n"),
 		}
-		return validator.WarnWithDetails(message, details)
+		return validator.FailWithDetails(message, details)
 	}
 
 	return validator.Pass()

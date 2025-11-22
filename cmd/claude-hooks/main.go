@@ -204,7 +204,7 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 		filevalidators.NewMarkdownValidator(log),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit),
+			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
 			validator.FileExtensionIs(".md"),
 		),
 	)
@@ -213,7 +213,7 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 		filevalidators.NewTerraformValidator(log),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit),
+			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
 			validator.FileExtensionIs(".tf"),
 		),
 	)
@@ -222,7 +222,7 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 		filevalidators.NewShellScriptValidator(log),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit),
+			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
 			validator.Or(
 				validator.FileExtensionIs(".sh"),
 				validator.FileExtensionIs(".bash"),
@@ -234,7 +234,7 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 		filevalidators.NewWorkflowValidator(log),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit),
+			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
 			validator.FilePathContains(".github/workflows/"),
 			validator.Or(
 				validator.FileExtensionIs(".yml"),
