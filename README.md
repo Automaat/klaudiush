@@ -287,23 +287,23 @@ gh pr create --title "feat(ci): add workflow" --body "..."        # ❌ Use ci(.
 
 #### MarkdownValidator
 
-**Triggers**: Write/Edit on `*.md` files
+**Triggers**: Write/Edit on `*.md` files, commit message bodies, PR descriptions
 
-**Validates** (warnings only):
+**Validates** (blocks invalid writes):
+
 - Empty line before code blocks
 - Empty line before first list item
 - Empty line after headers
+- Code block indentation in lists (must align with list content)
+- No multiple consecutive empty lines before code blocks
 
-**Example**:
+**Validation rules**:
 
-```markdown
-# Header
-Text immediately after  # ⚠️ Warning
-
-# Header
-
-Text with empty line    # ✅ Good
-```
+- Headers must have an empty line after them
+- Lists must have an empty line before the first item
+- Code blocks must have exactly one empty line before them
+- Code blocks inside lists must be indented to align with the list content (e.g., 3 spaces for "1. ", 2 spaces for "- ")
+- Partial indentation (e.g., 1 space when 3 are required) is blocked as it suggests incorrect intent
 
 #### ShellScriptValidator
 
@@ -316,12 +316,7 @@ Text with empty line    # ✅ Good
 - Timeout protection (10 seconds)
 - Graceful fallback if shellcheck not installed
 
-**Example**:
-
-```bash
-# test.sh with echo $var (unquoted)
-# ❌ Shellcheck error: SC2086 (double quote to prevent globbing)
-```
+**Example**: Catches unquoted variables, missing error handling, etc.
 
 #### TerraformValidator
 
@@ -540,7 +535,6 @@ Warnings (`ShouldBlock=false`) print to stderr but allow operation (exit 0).
 ### Build-time Configuration
 
 **Signoff Validation**:
-
 
 ```bash
 # Build with specific signoff requirement

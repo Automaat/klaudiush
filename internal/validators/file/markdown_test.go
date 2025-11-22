@@ -360,5 +360,159 @@ Done!
 				Expect(result.Message).To(BeEmpty())
 			})
 		})
+
+		Context("code block indentation in lists", func() {
+			It("warns when code block in numbered list has partial indentation", func() {
+				content := `1. First item
+
+ ` + "```" + `bash
+ code
+ ` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 3 spaces"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Found: 1 spaces, expected: at least 3 spaces"))
+			})
+
+			It("passes when code block in numbered list is properly indented", func() {
+				content := `1. First item
+
+   ` + "```" + `bash
+   code
+   ` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeTrue())
+			})
+
+			It("warns when code block in bulleted list has partial indentation", func() {
+				content := `- First item
+
+ ` + "```" + `bash
+ code
+ ` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 2 spaces"))
+			})
+
+			It("passes when code block in bulleted list is properly indented", func() {
+				content := `- First item
+
+  ` + "```" + `bash
+  code
+  ` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeTrue())
+			})
+
+			It("handles multi-digit numbered lists with partial indentation", func() {
+				content := `10. First item
+
+  ` + "```" + `bash
+  code
+  ` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 4 spaces"))
+			})
+
+			It("passes when code block has extra indentation", func() {
+				content := `1. First item
+
+     ` + "```" + `bash
+     code
+     ` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeTrue())
+			})
+
+			It("does not warn for code blocks outside lists", func() {
+				content := `Some text
+
+` + "```" + `bash
+code
+` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeTrue())
+			})
+
+			It("does not warn when code block immediately follows list without empty line", func() {
+				content := `1. First item
+` + "```" + `bash
+code
+` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				// Should warn about missing empty line before code block, but NOT about indentation
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.Details["errors"]).To(ContainSubstring("Code block should have empty line before it"))
+				Expect(result.Details["errors"]).NotTo(ContainSubstring("indented"))
+			})
+		})
+
+		Context("multiple empty lines before code block", func() {
+			It("warns when two empty lines before code block", func() {
+				content := `Some text
+
+
+` + "```" + `bash
+code
+` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.ShouldBlock).To(BeTrue())
+				Expect(result.Message).To(Equal("Markdown formatting errors"))
+				Expect(result.Details["errors"]).To(ContainSubstring("Line 4: Code block should have only one empty line before it, not multiple"))
+			})
+
+			It("passes when only one empty line before code block", func() {
+				content := `Some text
+
+` + "```" + `bash
+code
+` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeTrue())
+			})
+
+			It("warns when three empty lines before code block", func() {
+				content := `Some text
+
+
+
+` + "```" + `bash
+code
+` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.Details["errors"]).To(ContainSubstring("Code block should have only one empty line before it, not multiple"))
+			})
+
+			It("handles multiple empty lines after header", func() {
+				content := `## Header
+
+
+` + "```" + `bash
+code
+` + "```"
+				ctx.ToolInput.Content = content
+				result := v.Validate(ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.Details["errors"]).To(ContainSubstring("Code block should have only one empty line before it, not multiple"))
+			})
+		})
 	})
 })

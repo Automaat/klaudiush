@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/smykla-labs/claude-hooks/internal/validators"
 	"github.com/smykla-labs/claude-hooks/internal/validator"
 )
 
@@ -86,6 +87,22 @@ func (v *CommitValidator) validateMessage(message string) *validator.Result {
 	// Validate body lines
 	bodyErrors := v.validateBodyLines(lines)
 	errors = append(errors, bodyErrors...)
+
+	// Validate markdown formatting in body
+	if len(lines) > 1 {
+		// Extract body (skip title and empty line after title)
+		bodyStartIdx := 1
+		if bodyStartIdx < len(lines) && strings.TrimSpace(lines[bodyStartIdx]) == "" {
+			bodyStartIdx++
+		}
+		if bodyStartIdx < len(lines) {
+			body := strings.Join(lines[bodyStartIdx:], "\n")
+			markdownResult := validators.AnalyzeMarkdown(body)
+			for _, warning := range markdownResult.Warnings {
+				errors = append(errors, warning)
+			}
+		}
+	}
 
 	// Check for PR references
 	prErrors := v.checkPRReferences(message)
