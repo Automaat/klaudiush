@@ -12,6 +12,7 @@ import (
 	"github.com/smykla-labs/claude-hooks/internal/dispatcher"
 	"github.com/smykla-labs/claude-hooks/internal/parser"
 	"github.com/smykla-labs/claude-hooks/internal/validator"
+	gitvalidators "github.com/smykla-labs/claude-hooks/internal/validators/git"
 	"github.com/smykla-labs/claude-hooks/pkg/hook"
 	"github.com/smykla-labs/claude-hooks/pkg/logger"
 )
@@ -112,8 +113,8 @@ func run(_ *cobra.Command, _ []string) error {
 	// Create validator registry
 	registry := validator.NewRegistry()
 
-	// TODO: Register validators here
-	// This is where we'll register all validators in future phases
+	// Register validators
+	registerValidators(registry, log)
 
 	// Create dispatcher
 	disp := dispatcher.NewDispatcher(registry, log)
@@ -146,6 +147,18 @@ func run(_ *cobra.Command, _ []string) error {
 	}
 
 	return nil
+}
+
+func registerValidators(registry *validator.Registry, log logger.Logger) {
+	// Git validators
+	registry.Register(
+		gitvalidators.NewAddValidator(log),
+		validator.And(
+			validator.EventTypeIs(hook.PreToolUse),
+			validator.ToolTypeIs(hook.Bash),
+			validator.CommandContains("git add"),
+		),
+	)
 }
 
 func truncate(s string, maxLen int) string {

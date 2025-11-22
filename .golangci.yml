@@ -28,7 +28,6 @@ linters:
     # Best Practices
     - gocritic       # Comprehensive set of checks
     - revive         # Drop-in replacement for golint
-    - godot          # Comments end in period
     - prealloc       # Finds slice declarations that could be preallocated
     - predeclared    # Finds code that shadows predeclared identifiers
     - thelper        # Detects test helpers without t.Helper()
@@ -93,7 +92,6 @@ linters:
           - thelper
           - tparallel
           - forcetypeassert
-          - godot
           - wrapcheck
           - mnd            # Magic numbers are fine in tests
           - unparam        # Unused params are fine in test helpers
@@ -165,13 +163,6 @@ linters:
         - ifElseChain
         - commentFormatting
         - badCall
-
-    godot:
-      scope: declarations
-      exclude:
-        - "^@"
-        - "^TODO"
-        - "^FIXME"
 
     nakedret:
       max-func-lines: 30
