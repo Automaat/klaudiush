@@ -1,0 +1,86 @@
+version: '3'
+
+vars:
+  BINARY_NAME: claude-hooks
+  INSTALL_PATH: ~/.claude/hooks/dispatcher
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build the binary
+    cmds:
+      - go build -o bin/{{.BINARY_NAME}} ./cmd/claude-hooks
+    sources:
+      - '**/*.go'
+    generates:
+      - bin/{{.BINARY_NAME}}
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v -race -cover ./...
+
+  test:unit:
+    desc: Run unit tests only
+    cmds:
+      - go test -v -race -cover -short ./...
+
+  test:integration:
+    desc: Run integration tests only
+    cmds:
+      - go test -v -race -cover -run Integration ./...
+
+  lint:
+    desc: Run linters
+    cmds:
+      - golangci-lint run
+
+  lint:fix:
+    desc: Run linters with auto-fix
+    cmds:
+      - golangci-lint run --fix
+
+  check:
+    desc: Alias for lint:fix
+    cmds:
+      - task: lint:fix
+
+  fmt:
+    desc: Format code
+    cmds:
+      - go fmt ./...
+      - goimports -w .
+
+  install:
+    desc: Install binary to ~/.claude/hooks/
+    deps:
+      - build
+    cmds:
+      - mkdir -p ~/.claude/hooks
+      - cp bin/{{.BINARY_NAME}} {{.INSTALL_PATH}}
+      - chmod +x {{.INSTALL_PATH}}
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - rm -rf bin/
+      - rm -rf dist/
+      - rm -rf build/
+      - rm -rf tmp/
+
+  deps:
+    desc: Download dependencies
+    cmds:
+      - go mod download
+      - go mod tidy
+
+  verify:
+    desc: Run all verification tasks
+    cmds:
+      - task: fmt
+      - task: lint
+      - task: test

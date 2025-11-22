@@ -1,0 +1,211 @@
+// Package validator provides the validator registry and predicate system.
+package validator
+
+import (
+	"path/filepath"
+	"regexp"
+	"strings"
+
+	"github.com/smykla-labs/claude-hooks/pkg/hook"
+)
+
+// Predicate determines if a validator should be applied to a context.
+type Predicate func(*hook.Context) bool
+
+// Registration represents a validator registration with its predicate.
+type Registration struct {
+	Validator Validator
+	Predicate Predicate
+}
+
+// Registry manages validator registrations and selection.
+type Registry struct {
+	registrations []Registration
+}
+
+// NewRegistry creates a new empty validator registry.
+func NewRegistry() *Registry {
+	return &Registry{
+		registrations: make([]Registration, 0),
+	}
+}
+
+// Register adds a validator with a predicate to the registry.
+func (r *Registry) Register(validator Validator, predicate Predicate) {
+	r.registrations = append(r.registrations, Registration{
+		Validator: validator,
+		Predicate: predicate,
+	})
+}
+
+// FindValidators returns all validators whose predicates match the context.
+func (r *Registry) FindValidators(ctx *hook.Context) []Validator {
+	validators := make([]Validator, 0)
+
+	for _, reg := range r.registrations {
+		if reg.Predicate(ctx) {
+			validators = append(validators, reg.Validator)
+		}
+	}
+
+	return validators
+}
+
+// Count returns the number of registered validators.
+func (r *Registry) Count() int {
+	return len(r.registrations)
+}
+
+// Common Predicates
+
+// EventTypeIs returns a predicate that matches the given event type.
+func EventTypeIs(eventType hook.EventType) Predicate {
+	return func(ctx *hook.Context) bool {
+		return ctx.EventType == eventType
+	}
+}
+
+// ToolTypeIs returns a predicate that matches the given tool type.
+func ToolTypeIs(toolType hook.ToolType) Predicate {
+	return func(ctx *hook.Context) bool {
+		return ctx.ToolName == toolType
+	}
+}
+
+// ToolTypeIn returns a predicate that matches any of the given tool types.
+func ToolTypeIn(toolTypes ...hook.ToolType) Predicate {
+	return func(ctx *hook.Context) bool {
+		for _, t := range toolTypes {
+			if ctx.ToolName == t {
+				return true
+			}
+		}
+
+		return false
+	}
+}
+
+// CommandMatches returns a predicate that matches if the command matches the pattern.
+func CommandMatches(pattern string) Predicate {
+	re := regexp.MustCompile(pattern)
+
+	return func(ctx *hook.Context) bool {
+		return re.MatchString(ctx.GetCommand())
+	}
+}
+
+// CommandContains returns a predicate that matches if the command contains the substring.
+func CommandContains(substring string) Predicate {
+	return func(ctx *hook.Context) bool {
+		return strings.Contains(ctx.GetCommand(), substring)
+	}
+}
+
+// CommandStartsWith returns a predicate that matches if the command starts with the prefix.
+func CommandStartsWith(prefix string) Predicate {
+	return func(ctx *hook.Context) bool {
+		cmd := strings.TrimSpace(ctx.GetCommand())
+
+		return strings.HasPrefix(cmd, prefix)
+	}
+}
+
+// FilePathMatches returns a predicate that matches if the file path matches the pattern.
+func FilePathMatches(pattern string) Predicate {
+	return func(ctx *hook.Context) bool {
+		matched, err := filepath.Match(pattern, ctx.GetFilePath())
+
+		return err == nil && matched
+	}
+}
+
+// FilePathContains returns a predicate that matches if the file path contains the substring.
+func FilePathContains(substring string) Predicate {
+	return func(ctx *hook.Context) bool {
+		return strings.Contains(ctx.GetFilePath(), substring)
+	}
+}
+
+// FileExtensionIs returns a predicate that matches if the file has the given extension.
+func FileExtensionIs(ext string) Predicate {
+	if !strings.HasPrefix(ext, ".") {
+		ext = "." + ext
+	}
+
+	return func(ctx *hook.Context) bool {
+		return filepath.Ext(ctx.GetFilePath()) == ext
+	}
+}
+
+// FileExtensionIn returns a predicate that matches if the file has any of the given extensions.
+func FileExtensionIn(exts ...string) Predicate {
+	// Normalize extensions
+	normalized := make([]string, len(exts))
+	for i, ext := range exts {
+		if !strings.HasPrefix(ext, ".") {
+			ext = "." + ext
+		}
+
+		normalized[i] = ext
+	}
+
+	return func(ctx *hook.Context) bool {
+		fileExt := filepath.Ext(ctx.GetFilePath())
+		for _, ext := range normalized {
+			if fileExt == ext {
+				return true
+			}
+		}
+
+		return false
+	}
+}
+
+// Predicate Combinators
+
+// And returns a predicate that matches if all predicates match.
+func And(predicates ...Predicate) Predicate {
+	return func(ctx *hook.Context) bool {
+		for _, p := range predicates {
+			if !p(ctx) {
+				return false
+			}
+		}
+
+		return true
+	}
+}
+
+// Or returns a predicate that matches if any predicate matches.
+func Or(predicates ...Predicate) Predicate {
+	return func(ctx *hook.Context) bool {
+		for _, p := range predicates {
+			if p(ctx) {
+				return true
+			}
+		}
+
+		return false
+	}
+}
+
+// Not returns a predicate that inverts the given predicate.
+func Not(predicate Predicate) Predicate {
+	return func(ctx *hook.Context) bool {
+		return !predicate(ctx)
+	}
+}
+
+// Always returns a predicate that always matches.
+func Always() Predicate {
+	return func(*hook.Context) bool {
+		return true
+	}
+}
+
+// Never returns a predicate that never matches.
+func Never() Predicate {
+	return func(*hook.Context) bool {
+		return false
+	}
+}

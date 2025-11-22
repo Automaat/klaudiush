@@ -1,0 +1,120 @@
+version: "2"
+
+linters:
+  enable:
+    # Core (enabled by default, explicitly listed)
+    - errcheck       # Checks for unchecked errors
+    - govet          # Reports suspicious constructs
+    - staticcheck    # Static analysis checks
+
+    # Security & Correctness
+    - gosec          # Security issues
+    - errorlint      # Error wrapping with %w
+
+    # Code Quality
+    - gocyclo        # Cyclomatic complexity
+    - goconst        # Repeated strings -> constants
+    - unconvert      # Unnecessary conversions
+
+    # Best Practices
+    - gocritic       # Comprehensive set of checks
+    - revive         # Drop-in replacement for golint
+
+    # Documentation
+    - misspell       # Misspelled English words
+
+    # Formatting
+    - whitespace     # Leading/trailing whitespace
+
+linters-settings:
+  cyclop:
+    max-complexity: 30
+
+  funlen:
+    lines: 100
+    statements: 50
+
+  gocognit:
+    min-complexity: 20
+
+  gocyclo:
+    min-complexity: 30
+
+  goconst:
+    min-len: 2
+    min-occurrences: 3
+
+  dupl:
+    threshold: 100
+
+  revive:
+    enable-all-rules: false
+    rules:
+      # Critical rules
+      - name: blank-imports
+      - name: context-keys-type
+      - name: time-equal
+      - name: time-naming
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: if-return
+      - name: increment-decrement
+      - name: var-declaration
+
+      # Disabled (too noisy or stylistic)
+      - name: package-comments
+        disabled: true
+      - name: dot-imports
+        disabled: true
+      - name: exported
+        disabled: true
+      - name: var-naming
+        disabled: true
+      - name: indent-error-flow
+        disabled: true
+      - name: context-as-argument
+        disabled: true
+
+  gocritic:
+    disabled-checks:
+      - ifElseChain
+      - commentFormatting
+      - badCall
+
+  goimports:
+    local-prefixes: github.com/smykla-labs/claude-hooks
+
+  godot:
+    scope: declarations
+    exclude:
+      - "^@"
+      - "^TODO"
+      - "^FIXME"
+
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+
+  staticcheck:
+    checks: ["all"]
+
+issues:
+  max-same-issues: 50
+
+  exclude-rules:
+    # Exclude some linters from test files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen
+        - goconst
+
+    # Exclude linters for test helpers
+    - path: internal/testing\.go
+      linters:
+        - errcheck
+        - gosec
