@@ -41,16 +41,15 @@ const (
 	LogFilePermissions = 0o600
 )
 
-// FileLogger implements Logger interface with file and stderr output.
+// FileLogger implements Logger interface with file output only.
 type FileLogger struct {
 	file      io.Writer
-	stderr    io.Writer
 	baseKVs   []any
 	debugMode bool
 	traceMode bool
 }
 
-// NewFileLogger creates a new FileLogger that writes to both file and stderr.
+// NewFileLogger creates a new FileLogger that writes to a log file.
 func NewFileLogger(filePath string, debugMode, traceMode bool) (*FileLogger, error) {
 	//nolint:gosec // File path is controlled and within user home directory
 	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, LogFilePermissions)
@@ -60,17 +59,15 @@ func NewFileLogger(filePath string, debugMode, traceMode bool) (*FileLogger, err
 
 	return &FileLogger{
 		file:      file,
-		stderr:    os.Stderr,
 		debugMode: debugMode,
 		traceMode: traceMode,
 	}, nil
 }
 
-// NewFileLoggerWithWriters creates a new FileLogger with custom writers.
-func NewFileLoggerWithWriters(file, stderr io.Writer, debugMode, traceMode bool) *FileLogger {
+// NewFileLoggerWithWriter creates a new FileLogger with a custom writer.
+func NewFileLoggerWithWriter(file io.Writer, debugMode, traceMode bool) *FileLogger {
 	return &FileLogger{
 		file:      file,
-		stderr:    stderr,
 		debugMode: debugMode,
 		traceMode: traceMode,
 	}
@@ -107,14 +104,13 @@ func (l *FileLogger) With(keysAndValues ...any) Logger {
 
 	return &FileLogger{
 		file:      l.file,
-		stderr:    l.stderr,
 		baseKVs:   newKVs,
 		debugMode: l.debugMode,
 		traceMode: l.traceMode,
 	}
 }
 
-// log writes a log entry to both file and stderr.
+// log writes a log entry to the file only (not stderr).
 func (l *FileLogger) log(level Level, msg string, keysAndValues ...any) {
 	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 
@@ -139,14 +135,9 @@ func (l *FileLogger) log(level Level, msg string, keysAndValues ...any) {
 
 	output := builder.String()
 
-	// Write to file
+	// Write to file only
 	if l.file != nil {
 		_, _ = l.file.Write([]byte(output))
-	}
-
-	// Write to stderr
-	if l.stderr != nil {
-		_, _ = l.stderr.Write([]byte(output))
 	}
 }
 
