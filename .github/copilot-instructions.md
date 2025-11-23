@@ -184,6 +184,15 @@ This enforces exact signoff match in commit messages when using `task build:prod
 
 Warnings (`ShouldBlock=false`) print to stderr but allow operation (exit 0).
 
+## Project Structure
+
+### Temporary Files
+
+- Use `tmp/` directory in project root for all temporary files
+- Never use `/tmp` or system temp directories
+- The `tmp/` directory is already in `.gitignore`
+- Examples: temp files for validation, test artifacts, scratch files
+
 ## Code Style
 
 - Use Go 1.21+ features
