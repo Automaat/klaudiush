@@ -638,7 +638,9 @@ This Go implementation replaces the previous Bash-based validator system. Key di
 
 ## License
 
-Copyright © 2025 Bart Smykla
+MIT License - Copyright © 2025 Bart Smykla
+
+See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
