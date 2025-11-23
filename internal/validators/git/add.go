@@ -30,7 +30,7 @@ type AddValidator struct {
 // NewAddValidator creates a new GitAddValidator instance
 func NewAddValidator(log logger.Logger, gitRunner GitRunner) *AddValidator {
 	if gitRunner == nil {
-		gitRunner = NewRealGitRunner()
+		gitRunner = NewGitRunner()
 	}
 
 	return &AddValidator{

@@ -27,7 +27,7 @@ type CommitValidator struct {
 // NewCommitValidator creates a new CommitValidator instance
 func NewCommitValidator(log logger.Logger, gitRunner GitRunner) *CommitValidator {
 	if gitRunner == nil {
-		gitRunner = NewRealGitRunner()
+		gitRunner = NewGitRunner()
 	}
 
 	return &CommitValidator{

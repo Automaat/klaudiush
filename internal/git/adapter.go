@@ -1,10 +1,6 @@
 package git
 
-import (
-	gitvalidators "github.com/smykla-labs/claude-hooks/internal/validators/git"
-)
-
-// RepositoryAdapter adapts the Repository interface to implement GitRunner
+// RepositoryAdapter adapts the Repository interface to implement Runner
 // This provides backward compatibility with existing validators while using the SDK
 type RepositoryAdapter struct {
 	repo Repository
@@ -15,10 +11,10 @@ func NewRepositoryAdapter(repo Repository) *RepositoryAdapter {
 	return &RepositoryAdapter{repo: repo}
 }
 
-// NewSDKGitRunner creates a GitRunner backed by the go-git SDK
+// NewSDKRunner creates a Runner backed by the go-git SDK
 //
 //nolint:ireturn // Factory function intentionally returns interface
-func NewSDKGitRunner() (gitvalidators.GitRunner, error) {
+func NewSDKRunner() (Runner, error) {
 	repo, err := DiscoverRepository()
 	if err != nil {
 		return nil, err

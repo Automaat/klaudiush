@@ -177,18 +177,100 @@ registry.Register(
 
 **File Validators** (`internal/validators/file/`):
 
-- **MarkdownValidator**: Validates Markdown format conventions
-- **ShellScriptValidator**: Validates shell scripts with shellcheck (uses `internal/exec`)
-- **TerraformValidator**: Validates Terraform/OpenTofu formatting and linting (uses `internal/exec`)
+- **MarkdownValidator**: Validates Markdown format conventions (uses `MarkdownLinter`)
+- **ShellScriptValidator**: Validates shell scripts with shellcheck (uses `ShellChecker`)
+- **TerraformValidator**: Validates Terraform/OpenTofu formatting and linting (uses `TerraformFormatter`, `TfLinter`)
+- **WorkflowValidator**: Validates GitHub Actions workflows (uses `ActionLinter`)
+
+### Linter Abstractions
+
+**Linter Package** (`internal/linters/`):
+
+Provides typed interfaces for external linting tools:
+
+- **ShellChecker** (`shellcheck.go`): Shell script validation via shellcheck
+  - Returns structured `LintResult` with findings
+  - Handles tool availability checking
+
+- **TerraformFormatter** (`terraform.go`): Terraform/OpenTofu formatting validation
+  - Detects `tofu` vs `terraform` binary
+  - Parses `fmt -check -diff` output
+  - Returns file-level formatting issues
+
+- **TfLinter** (`tflint.go`): Terraform linting via tflint
+  - Uses `--format=compact` for structured output
+  - Distinguishes between findings and errors
+
+- **ActionLinter** (`actionlint.go`): GitHub Actions workflow validation
+  - Parses `file:line:col: message` format
+  - Returns structured findings with location data
+
+- **MarkdownLinter** (`markdownlint.go`): Markdown validation
+  - Custom rules via `AnalyzeMarkdown()` function
+  - Checks for proper heading spacing, etc.
+
+**Common Types** (`result.go`):
+
+- `LintResult`: Structured result with success/findings
+- `LintFinding`: Individual issue with file/line/message
+- `LintSeverity`: Error, Warning, Info levels
+
+**Benefits**:
+
+- Type-safe linter invocations
+- Testable via interface mocking
+- Consistent error handling
+- Foundation for parallel execution and caching
 
 ### Git Operations
 
-**GitRunner Interface** (`internal/validators/git/git_runner.go`):
+**Git SDK Architecture** (`internal/git/`):
 
-- Abstracts git commands for testing (uses `internal/exec` for execution)
-- `RealGitRunner`: Executes actual git commands
-- `MockGitRunner`: For testing validators
-- Operations: staged files, modified files, untracked files, remote validation
+The project uses a dual implementation strategy for git operations:
+
+- **SDK Implementation** (default in future): Uses `go-git/go-git/v6` for native Go git operations
+  - `Repository` interface (`repository.go`): Core git repository operations
+  - `SDKRepository`: Implementation using go-git SDK
+  - `DiscoverRepository()`: Finds and caches repository instance
+  - Performance: 2-5.9M× faster than CLI for cached operations
+
+- **CLI Implementation** (backward compatible): Executes git commands via shell
+  - `CLIGitRunner`: Uses `exec.CommandRunner` to execute git CLI
+  - Fallback when SDK initialization fails
+
+**Runner Interface** (`internal/git/runner.go`):
+
+Unified interface implemented by both CLI and SDK:
+
+- Operations: `IsInRepo()`, `GetStagedFiles()`, `GetModifiedFiles()`, `GetUntrackedFiles()`
+- Repository info: `GetRepoRoot()`, `GetCurrentBranch()`, `GetBranchRemote()`
+- Remote operations: `GetRemoteURL()`, `GetRemotes()`
+
+**Factory Pattern** (`internal/validators/git/git_runner.go`):
+
+```go
+func NewGitRunner() GitRunner {
+    // Check CLAUDE_HOOKS_USE_SDK_GIT environment variable
+    // Returns SDK implementation if set to "true" or "1"
+    // Falls back to CLI implementation otherwise
+}
+```
+
+**Environment Variable**:
+
+- `CLAUDE_HOOKS_USE_SDK_GIT=true` or `CLAUDE_HOOKS_USE_SDK_GIT=1`: Use SDK implementation
+- Not set or other value: Use CLI implementation (default)
+
+**Adapter Pattern** (`internal/git/adapter.go`):
+
+- `RepositoryAdapter`: Wraps `Repository` to implement `Runner` interface
+- Provides backward compatibility with existing validators
+- `NewSDKRunner()`: Creates SDK-backed runner instance
+
+**Testing**:
+
+- `MockGitRunner`: For testing validators with controlled git state
+- All 169 git validator tests pass with both implementations
 
 ### Logging
 

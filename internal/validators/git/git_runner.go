@@ -2,41 +2,17 @@ package git
 
 import (
 	"context"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/smykla-labs/claude-hooks/internal/exec"
+	gitpkg "github.com/smykla-labs/claude-hooks/internal/git"
 )
 
-// GitRunner defines the interface for git operations
-type GitRunner interface {
-	// IsInRepo checks if we're in a git repository
-	IsInRepo() bool
-
-	// GetStagedFiles returns the list of staged files
-	GetStagedFiles() ([]string, error)
-
-	// GetModifiedFiles returns the list of modified but unstaged files
-	GetModifiedFiles() ([]string, error)
-
-	// GetUntrackedFiles returns the list of untracked files
-	GetUntrackedFiles() ([]string, error)
-
-	// GetRepoRoot returns the git repository root directory
-	GetRepoRoot() (string, error)
-
-	// GetRemoteURL returns the URL for the given remote
-	GetRemoteURL(remote string) (string, error)
-
-	// GetCurrentBranch returns the current branch name
-	GetCurrentBranch() (string, error)
-
-	// GetBranchRemote returns the tracking remote for the given branch
-	GetBranchRemote(branch string) (string, error)
-
-	// GetRemotes returns the list of all remotes with their URLs
-	GetRemotes() (map[string]string, error)
-}
+// GitRunner is an alias for the git.Runner interface
+// This maintains backward compatibility while using the centralized interface definition
+type GitRunner = gitpkg.Runner
 
 // CLIGitRunner implements GitRunner using actual git commands
 type CLIGitRunner struct {
@@ -52,8 +28,22 @@ func NewCLIGitRunner() *CLIGitRunner {
 	}
 }
 
-// NewRealGitRunner creates a new CLIGitRunner instance
-func NewRealGitRunner() *CLIGitRunner {
+// NewGitRunner creates a GitRunner instance based on environment configuration
+// If CLAUDE_HOOKS_USE_SDK_GIT is set to "true" or "1", attempts to use SDK-based implementation
+// Falls back to CLI-based implementation if SDK initialization fails or env var not set
+// This function always returns a valid GitRunner instance
+//
+//nolint:ireturn // Factory function intentionally returns interface
+func NewGitRunner() GitRunner {
+	useSDK := os.Getenv("CLAUDE_HOOKS_USE_SDK_GIT")
+	if useSDK == "true" || useSDK == "1" {
+		runner, err := gitpkg.NewSDKRunner()
+		if err == nil {
+			return runner
+		}
+		// Fall back to CLI on SDK initialization failure
+	}
+
 	return NewCLIGitRunner()
 }
 

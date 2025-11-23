@@ -25,7 +25,7 @@ type PushValidator struct {
 // NewPushValidator creates a new PushValidator instance
 func NewPushValidator(log logger.Logger, gitRunner GitRunner) *PushValidator {
 	if gitRunner == nil {
-		gitRunner = NewRealGitRunner()
+		gitRunner = NewGitRunner()
 	}
 
 	return &PushValidator{
