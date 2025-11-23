@@ -97,11 +97,25 @@ task test:integration  # Integration tests only
 ### Code Quality
 
 ```bash
-task check      # Lint and auto-fix
-task lint       # Lint only (65 linters enabled)
-task lint:fix   # Lint with auto-fix
-task fmt        # Format code
-task verify     # Run fmt + lint + test
+task check        # Lint and auto-fix
+task lint         # Lint only (65 linters enabled)
+task lint:fix     # Lint with auto-fix
+task lint:staged  # Lint only modified and staged files
+task fmt          # Format code
+task verify       # Run fmt + lint + test
+```
+
+### Git Hooks
+
+```bash
+task install:hooks  # Install pre-commit hook
+```
+
+The pre-commit hook runs `task lint:staged` to validate only modified and staged files before allowing commits. This ensures code quality without running linters on the entire codebase.
+
+To bypass the hook (not recommended), use:
+```bash
+git commit --no-verify
 ```
 
 ### Other
