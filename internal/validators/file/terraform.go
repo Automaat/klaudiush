@@ -137,8 +137,12 @@ func (v *TerraformValidator) checkFormat(tool, filePath string) string {
 	}
 
 	if strings.TrimSpace(diff) != "" {
-		return fmt.Sprintf("⚠️  Terraform formatting issues detected:\n%s\n   Run '%s fmt %s' to fix",
-			strings.TrimSpace(diff), tool, filepath.Base(filePath))
+		return fmt.Sprintf(
+			"⚠️  Terraform formatting issues detected:\n%s\n   Run '%s fmt %s' to fix",
+			strings.TrimSpace(diff),
+			tool,
+			filepath.Base(filePath),
+		)
 	}
 
 	v.Logger().Debug("fmt command failed", "error", err, "stderr", result.Stderr)

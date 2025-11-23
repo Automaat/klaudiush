@@ -35,7 +35,11 @@ func ValidatePRBody(body, prType string) PRBodyValidationResult {
 	}
 
 	if body == "" {
-		result.Warnings = append(result.Warnings, "Could not extract PR body - ensure you're using --body flag")
+		result.Warnings = append(
+			result.Warnings,
+			"Could not extract PR body - ensure you're using --body flag",
+		)
+
 		return result
 	}
 
@@ -69,11 +73,17 @@ func checkRequiredSections(body string, result *PRBodyValidationResult) {
 	}
 
 	if !strings.Contains(body, implementationHeader) {
-		result.Errors = append(result.Errors, "PR body missing '## Implementation information' section")
+		result.Errors = append(
+			result.Errors,
+			"PR body missing '## Implementation information' section",
+		)
 	}
 
 	if !strings.Contains(body, supportingDocsHeader) {
-		result.Errors = append(result.Errors, "PR body missing '## Supporting documentation' section")
+		result.Errors = append(
+			result.Errors,
+			"PR body missing '## Supporting documentation' section",
+		)
 	}
 }
 

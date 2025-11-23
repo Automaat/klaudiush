@@ -101,9 +101,12 @@ func (v *CommitValidator) checkFlags(gitCmd *parser.GitCommand) *validator.Resul
 	hasGPGSign := gitCmd.HasFlag("-S") || gitCmd.HasFlag("--gpg-sign")
 
 	if !hasSignoff || !hasGPGSign {
-		message := templates.MustExecute(templates.GitCommitFlagsTemplate, templates.GitCommitFlagsData{
-			ArgsStr: strings.Join(gitCmd.Args, " "),
-		})
+		message := templates.MustExecute(
+			templates.GitCommitFlagsTemplate,
+			templates.GitCommitFlagsData{
+				ArgsStr: strings.Join(gitCmd.Args, " "),
+			},
+		)
 
 		return validator.Fail(
 			"Git commit must use -sS flags",
@@ -139,10 +142,13 @@ func (v *CommitValidator) checkStagingArea(gitCmd *parser.GitCommand) *validator
 		// No files staged, get status info
 		modifiedCount, untrackedCount := v.getStatusCounts()
 
-		message := templates.MustExecute(templates.GitCommitNoStagedTemplate, templates.GitCommitNoStagedData{
-			ModifiedCount:  modifiedCount,
-			UntrackedCount: untrackedCount,
-		})
+		message := templates.MustExecute(
+			templates.GitCommitNoStagedTemplate,
+			templates.GitCommitNoStagedData{
+				ModifiedCount:  modifiedCount,
+				UntrackedCount: untrackedCount,
+			},
+		)
 
 		return validator.Fail(
 			"No files staged for commit",

@@ -35,7 +35,9 @@ var _ = Describe("PRValidator", func() {
 		It("should fail for invalid format", func() {
 			result := git.ValidatePRTitle("Add new feature")
 			Expect(result.Valid).To(BeFalse())
-			Expect(result.ErrorMessage).To(ContainSubstring("doesn't follow semantic commit format"))
+			Expect(
+				result.ErrorMessage,
+			).To(ContainSubstring("doesn't follow semantic commit format"))
 		})
 
 		It("should fail for empty title", func() {
@@ -143,7 +145,9 @@ This change improves performance.
 See docs/performance.md`
 
 			result := git.ValidatePRBody(body, "feat")
-			Expect(result.Errors).To(ContainElement(ContainSubstring("missing '## Implementation information'")))
+			Expect(
+				result.Errors,
+			).To(ContainElement(ContainSubstring("missing '## Implementation information'")))
 		})
 
 		It("should error on missing Supporting documentation section", func() {
@@ -154,12 +158,16 @@ This change improves performance.
 - Updated algorithm`
 
 			result := git.ValidatePRBody(body, "feat")
-			Expect(result.Errors).To(ContainElement(ContainSubstring("missing '## Supporting documentation'")))
+			Expect(
+				result.Errors,
+			).To(ContainElement(ContainSubstring("missing '## Supporting documentation'")))
 		})
 
 		It("should warn on empty body", func() {
 			result := git.ValidatePRBody("", "feat")
-			Expect(result.Warnings).To(ContainElement(ContainSubstring("Could not extract PR body")))
+			Expect(
+				result.Warnings,
+			).To(ContainElement(ContainSubstring("Could not extract PR body")))
 		})
 
 		It("should warn for ci type without changelog skip", func() {
@@ -173,7 +181,9 @@ CI change
 N/A`
 
 			result := git.ValidatePRBody(body, "ci")
-			Expect(result.Warnings).To(ContainElement(ContainSubstring("should typically have '> Changelog: skip'")))
+			Expect(
+				result.Warnings,
+			).To(ContainElement(ContainSubstring("should typically have '> Changelog: skip'")))
 		})
 
 		It("should not warn for ci type with changelog skip", func() {
@@ -189,7 +199,9 @@ CI change
 N/A`
 
 			result := git.ValidatePRBody(body, "ci")
-			Expect(result.Warnings).NotTo(ContainElement(ContainSubstring("should typically have '> Changelog: skip'")))
+			Expect(
+				result.Warnings,
+			).NotTo(ContainElement(ContainSubstring("should typically have '> Changelog: skip'")))
 		})
 
 		It("should warn for feat type with changelog skip", func() {
@@ -205,7 +217,9 @@ New feature
 N/A`
 
 			result := git.ValidatePRBody(body, "feat")
-			Expect(result.Warnings).To(ContainElement(ContainSubstring("is user-facing but has 'Changelog: skip'")))
+			Expect(
+				result.Warnings,
+			).To(ContainElement(ContainSubstring("is user-facing but has 'Changelog: skip'")))
 		})
 
 		It("should validate custom changelog format", func() {
@@ -221,7 +235,9 @@ New feature
 N/A`
 
 			result := git.ValidatePRBody(body, "feat")
-			Expect(result.Errors).To(ContainElement(ContainSubstring("Custom changelog entry doesn't follow semantic commit format")))
+			Expect(
+				result.Errors,
+			).To(ContainElement(ContainSubstring("Custom changelog entry doesn't follow semantic commit format")))
 		})
 
 		It("should accept valid custom changelog format", func() {
@@ -265,7 +281,9 @@ New feature
 N/A`
 
 			result := git.ValidatePRBody(body, "feat")
-			Expect(result.Warnings).To(ContainElement(ContainSubstring("Supporting documentation section is empty")))
+			Expect(
+				result.Warnings,
+			).To(ContainElement(ContainSubstring("Supporting documentation section is empty")))
 		})
 	})
 
@@ -466,7 +484,10 @@ EOF
 			}
 
 			result := validator.Validate(ctx)
-			Expect(result.Passed).To(BeFalse()) // Warnings return Passed=false with ShouldBlock=false
+			Expect(
+				result.Passed,
+			).To(BeFalse())
+			// Warnings return Passed=false with ShouldBlock=false
 			Expect(result.Message).To(ContainSubstring("warnings"))
 			Expect(result.Message).To(ContainSubstring("ci/skip-test"))
 		})

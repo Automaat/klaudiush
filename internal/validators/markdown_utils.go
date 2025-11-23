@@ -26,7 +26,9 @@ type listContext struct {
 
 var (
 	codeBlockRegex = regexp.MustCompile(`^[[:space:]]*` + "```")
-	listItemRegex  = regexp.MustCompile(`^[[:space:]]*[-*+][[:space:]]|^[[:space:]]*[0-9]+\.[[:space:]]`)
+	listItemRegex  = regexp.MustCompile(
+		`^[[:space:]]*[-*+][[:space:]]|^[[:space:]]*[0-9]+\.[[:space:]]`,
+	)
 	headerRegex    = regexp.MustCompile(`^#+[[:space:]]`)
 	commentRegex   = regexp.MustCompile(`^<!--`)
 	emptyLineRegex = regexp.MustCompile(`^[[:space:]]*$`)
@@ -70,7 +72,12 @@ func AnalyzeMarkdown(content string) MarkdownAnalysisResult {
 		// Check for code block markers and indentation
 		if isCodeBlockMarker(line) {
 			checkCodeBlockIndentation(line, lastList, lineNum, &result.Warnings)
-			checkMultipleEmptyLinesBeforeCodeBlock(prevLine, prevPrevLine, lineNum, &result.Warnings)
+			checkMultipleEmptyLinesBeforeCodeBlock(
+				prevLine,
+				prevPrevLine,
+				lineNum,
+				&result.Warnings,
+			)
 			inCodeBlock = checkCodeBlock(line, prevLine, lineNum, inCodeBlock, &result.Warnings)
 			// Reset list context after code block
 			if !inCodeBlock {
@@ -127,7 +134,12 @@ func checkCodeBlock(line, prevLine string, lineNum int, inCodeBlock bool, warnin
 }
 
 // checkCodeBlockIndentation validates code block indentation within list items
-func checkCodeBlockIndentation(line string, lastList *listContext, lineNum int, warnings *[]string) {
+func checkCodeBlockIndentation(
+	line string,
+	lastList *listContext,
+	lineNum int,
+	warnings *[]string,
+) {
 	if lastList == nil || !lastList.sawEmptyLineAfter {
 		return
 	}
@@ -138,20 +150,37 @@ func checkCodeBlockIndentation(line string, lastList *listContext, lineNum int, 
 	// Only warn if it has some indentation but not enough (partial indentation suggests
 	// it was intended to be part of the list)
 	if indent > 0 && indent < lastList.indent {
-		*warnings = append(*warnings,
-			fmt.Sprintf("⚠️  Line %d: Code block in list item should be indented by at least %d spaces", lineNum, lastList.indent),
-			fmt.Sprintf("   Found: %d spaces, expected: at least %d spaces", indent, lastList.indent),
+		*warnings = append(
+			*warnings,
+			fmt.Sprintf(
+				"⚠️  Line %d: Code block in list item should be indented by at least %d spaces",
+				lineNum,
+				lastList.indent,
+			),
+			fmt.Sprintf(
+				"   Found: %d spaces, expected: at least %d spaces",
+				indent,
+				lastList.indent,
+			),
 		)
 	}
 }
 
 // checkMultipleEmptyLinesBeforeCodeBlock validates that there's only one empty line before code blocks
-func checkMultipleEmptyLinesBeforeCodeBlock(prevLine, prevPrevLine string, lineNum int, warnings *[]string) {
+func checkMultipleEmptyLinesBeforeCodeBlock(
+	prevLine, prevPrevLine string,
+	lineNum int,
+	warnings *[]string,
+) {
 	// Check if we have two consecutive empty lines before the code block
 	// lineNum > 3 ensures we have at least 3 lines processed, so prevPrevLine is from actual content
 	if lineNum > 3 && isEmptyLine(prevLine) && isEmptyLine(prevPrevLine) {
-		*warnings = append(*warnings,
-			fmt.Sprintf("⚠️  Line %d: Code block should have only one empty line before it, not multiple", lineNum),
+		*warnings = append(
+			*warnings,
+			fmt.Sprintf(
+				"⚠️  Line %d: Code block should have only one empty line before it, not multiple",
+				lineNum,
+			),
 			"   Found multiple consecutive empty lines before code block",
 		)
 	}

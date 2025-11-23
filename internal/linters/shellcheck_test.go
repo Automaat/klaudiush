@@ -21,7 +21,11 @@ type mockCommandRunner struct {
 	runWithStdinFunc func(ctx context.Context, stdin io.Reader, name string, args ...string) (*execpkg.CommandResult, error)
 }
 
-func (m *mockCommandRunner) Run(ctx context.Context, name string, args ...string) (*execpkg.CommandResult, error) {
+func (m *mockCommandRunner) Run(
+	ctx context.Context,
+	name string,
+	args ...string,
+) (*execpkg.CommandResult, error) {
 	if m.runFunc != nil {
 		return m.runFunc(ctx, name, args...)
 	}
@@ -29,7 +33,12 @@ func (m *mockCommandRunner) Run(ctx context.Context, name string, args ...string
 	return &execpkg.CommandResult{}, nil
 }
 
-func (m *mockCommandRunner) RunWithStdin(ctx context.Context, stdin io.Reader, name string, args ...string) (*execpkg.CommandResult, error) {
+func (m *mockCommandRunner) RunWithStdin(
+	ctx context.Context,
+	stdin io.Reader,
+	name string,
+	args ...string,
+) (*execpkg.CommandResult, error) {
 	if m.runWithStdinFunc != nil {
 		return m.runWithStdinFunc(ctx, stdin, name, args...)
 	}
@@ -37,7 +46,11 @@ func (m *mockCommandRunner) RunWithStdin(ctx context.Context, stdin io.Reader, n
 	return &execpkg.CommandResult{}, nil
 }
 
-func (m *mockCommandRunner) RunWithTimeout(timeout time.Duration, name string, args ...string) (*execpkg.CommandResult, error) {
+func (m *mockCommandRunner) RunWithTimeout(
+	timeout time.Duration,
+	name string,
+	args ...string,
+) (*execpkg.CommandResult, error) {
 	// Use context with timeout and call Run
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

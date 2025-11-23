@@ -24,7 +24,12 @@ type CommandRunner interface {
 	Run(ctx context.Context, name string, args ...string) (*CommandResult, error)
 
 	// RunWithStdin executes a command with stdin input.
-	RunWithStdin(ctx context.Context, stdin io.Reader, name string, args ...string) (*CommandResult, error)
+	RunWithStdin(
+		ctx context.Context,
+		stdin io.Reader,
+		name string,
+		args ...string,
+	) (*CommandResult, error)
 
 	// RunWithTimeout executes a command with a specific timeout.
 	RunWithTimeout(timeout time.Duration, name string, args ...string) (*CommandResult, error)
@@ -43,7 +48,11 @@ func NewCommandRunner(defaultTimeout time.Duration) *commandRunner {
 }
 
 // Run executes a command and returns the result.
-func (r *commandRunner) Run(ctx context.Context, name string, args ...string) (*CommandResult, error) {
+func (r *commandRunner) Run(
+	ctx context.Context,
+	name string,
+	args ...string,
+) (*CommandResult, error) {
 	cmd := exec.CommandContext(ctx, name, args...)
 
 	var stdout, stderr bytes.Buffer
@@ -69,7 +78,12 @@ func (r *commandRunner) Run(ctx context.Context, name string, args ...string) (*
 }
 
 // RunWithStdin executes a command with stdin input.
-func (r *commandRunner) RunWithStdin(ctx context.Context, stdin io.Reader, name string, args ...string) (*CommandResult, error) {
+func (r *commandRunner) RunWithStdin(
+	ctx context.Context,
+	stdin io.Reader,
+	name string,
+	args ...string,
+) (*CommandResult, error) {
 	cmd := exec.CommandContext(ctx, name, args...)
 	cmd.Stdin = stdin
 
@@ -96,7 +110,11 @@ func (r *commandRunner) RunWithStdin(ctx context.Context, stdin io.Reader, name 
 }
 
 // RunWithTimeout executes a command with a specific timeout.
-func (r *commandRunner) RunWithTimeout(timeout time.Duration, name string, args ...string) (*CommandResult, error) {
+func (r *commandRunner) RunWithTimeout(
+	timeout time.Duration,
+	name string,
+	args ...string,
+) (*CommandResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 

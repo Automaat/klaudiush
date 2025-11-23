@@ -202,7 +202,11 @@ func (v *PRValidator) validatePR(data PRData) *validator.Result {
 // validatePRTitleData validates the PR title
 func validatePRTitleData(title string, allErrors, allWarnings *[]string) {
 	if title == "" {
-		*allWarnings = append(*allWarnings, "Could not extract PR title - ensure you're using --title flag")
+		*allWarnings = append(
+			*allWarnings,
+			"Could not extract PR title - ensure you're using --title flag",
+		)
+
 		return
 	}
 
@@ -216,7 +220,11 @@ func validatePRTitleData(title string, allErrors, allWarnings *[]string) {
 // validatePRBodyData validates the PR body
 func validatePRBodyData(body, prType string, allErrors, allWarnings *[]string) {
 	if body == "" {
-		*allWarnings = append(*allWarnings, "Could not extract PR body - ensure you're using --body flag")
+		*allWarnings = append(
+			*allWarnings,
+			"Could not extract PR body - ensure you're using --body flag",
+		)
+
 		return
 	}
 

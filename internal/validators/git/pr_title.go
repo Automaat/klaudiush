@@ -55,8 +55,13 @@ func ValidatePRTitle(title string) PRTitleValidationResult {
 		scopeMatch := matches[2] // ci, test, docs, or build
 
 		return PRTitleValidationResult{
-			Valid:        false,
-			ErrorMessage: fmt.Sprintf("Use '%s(...)' not '%s(%s)' for infrastructure changes", scopeMatch, typeMatch, scopeMatch),
+			Valid: false,
+			ErrorMessage: fmt.Sprintf(
+				"Use '%s(...)' not '%s(%s)' for infrastructure changes",
+				scopeMatch,
+				typeMatch,
+				scopeMatch,
+			),
 			Details: []string{
 				"feat/fix should only be used for user-facing changes",
 			},

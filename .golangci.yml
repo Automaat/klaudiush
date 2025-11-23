@@ -210,8 +210,6 @@ linters:
       check-type-assertions: true
       check-blank: false
 
-    modernize:
-
     wsl_v5:
       allow-first-in-block: true
       allow-whole-block: false
@@ -223,6 +221,7 @@ formatters:
     - gofumpt        # Stricter gofmt
     - goimports      # Organizes imports
     - gci            # Controls import order
+    - golines        # Checks if code is formatted, and fixes long line
 
   settings:
     goimports:

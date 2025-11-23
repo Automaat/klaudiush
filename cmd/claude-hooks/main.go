@@ -52,7 +52,12 @@ before they are executed by Claude Code.`,
 }
 
 func init() {
-	rootCmd.Flags().StringVar(&hookType, "hook-type", "", "Hook event type (PreToolUse, PostToolUse, Notification)")
+	rootCmd.Flags().StringVar(
+		&hookType,
+		"hook-type",
+		"",
+		"Hook event type (PreToolUse, PostToolUse, Notification)",
+	)
 	rootCmd.Flags().BoolVar(&debugMode, "debug", true, "Enable debug logging")
 	rootCmd.Flags().BoolVar(&traceMode, "trace", false, "Enable trace logging")
 }
@@ -143,7 +148,12 @@ func run(_ *cobra.Command, _ []string) error {
 }
 
 func registerValidators(registry *validator.Registry, log logger.Logger) {
-	// Git validators
+	registerGitValidators(registry, log)
+	registerFileValidators(registry, log)
+	registerNotificationValidators(registry, log)
+}
+
+func registerGitValidators(registry *validator.Registry, log logger.Logger) {
 	registry.Register(
 		gitvalidators.NewAddValidator(log, nil), // nil uses RealGitRunner
 		validator.And(
@@ -207,8 +217,9 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 			),
 		),
 	)
+}
 
-	// File validators
+func registerFileValidators(registry *validator.Registry, log logger.Logger) {
 	registry.Register(
 		filevalidators.NewMarkdownValidator(log),
 		validator.And(
@@ -251,8 +262,9 @@ func registerValidators(registry *validator.Registry, log logger.Logger) {
 			),
 		),
 	)
+}
 
-	// Notification validators
+func registerNotificationValidators(registry *validator.Registry, log logger.Logger) {
 	registry.Register(
 		notificationvalidators.NewBellValidator(log),
 		validator.EventTypeIs(hook.Notification),

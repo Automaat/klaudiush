@@ -36,7 +36,9 @@ var (
 	// yamlCommentRegex matches YAML comments
 	yamlCommentRegex = regexp.MustCompile(`^\s*#`)
 	// versionCommentRegex extracts version from comment (e.g., "# v1.2.3" or "# 1.2.3")
-	versionCommentRegex = regexp.MustCompile(`#\s*(v?[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:[.-][a-zA-Z0-9]+)?)`)
+	versionCommentRegex = regexp.MustCompile(
+		`#\s*(v?[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:[.-][a-zA-Z0-9]+)?)`,
+	)
 	// sha1Regex matches 40-character hex SHA-1
 	sha1Regex = regexp.MustCompile(`^[a-f0-9]{40}$`)
 	// sha256Regex matches 64-character hex SHA-256
@@ -217,7 +219,9 @@ func (v *WorkflowValidator) parseWorkflow(content string) []actionUse {
 			}
 
 			// Extract action name and version
-			if parts := strings.SplitN(actionRef, "@", actionRefParts); len(parts) == actionRefParts {
+			if parts := strings.SplitN(actionRef, "@", actionRefParts); len(
+				parts,
+			) == actionRefParts {
 				actionName := parts[0]
 				version := parts[1]
 
@@ -318,7 +322,9 @@ func (v *WorkflowValidator) hasExplanationComment(action actionUse) bool {
 	// Check previous line for comment
 	if yamlCommentRegex.MatchString(action.PreviousLine) {
 		// It's a comment, but is it a version comment?
-		if matches := versionCommentRegex.FindStringSubmatch(action.PreviousLine); len(matches) == 0 {
+		if matches := versionCommentRegex.FindStringSubmatch(action.PreviousLine); len(
+			matches,
+		) == 0 {
 			// Not a version comment, so it's an explanation
 			return true
 		}
@@ -327,9 +333,14 @@ func (v *WorkflowValidator) hasExplanationComment(action actionUse) bool {
 	// Check inline comment
 	if action.InlineComment != "" {
 		// Check if it's not a version comment
-		if matches := versionCommentRegex.FindStringSubmatch(action.InlineComment); len(matches) == 0 {
+		if matches := versionCommentRegex.FindStringSubmatch(action.InlineComment); len(
+			matches,
+		) == 0 {
 			// Has alphabetic characters (not just version)
-			if strings.ContainsAny(action.InlineComment, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") {
+			if strings.ContainsAny(
+				action.InlineComment,
+				"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+			) {
 				return true
 			}
 		}
@@ -350,7 +361,14 @@ func (v *WorkflowValidator) getLatestVersion(actionName string) string {
 	defer cancel()
 
 	// Try releases first
-	result, err := v.runner.Run(ctx, "gh", "api", fmt.Sprintf("repos/%s/releases/latest", actionName), "--jq", ".tag_name")
+	result, err := v.runner.Run(
+		ctx,
+		"gh",
+		"api",
+		fmt.Sprintf("repos/%s/releases/latest", actionName),
+		"--jq",
+		".tag_name",
+	)
 	if err == nil {
 		version := strings.TrimSpace(result.Stdout)
 		if version != "" {

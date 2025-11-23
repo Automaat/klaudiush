@@ -52,7 +52,7 @@ var _ = Describe("SDKRepository", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		// Configure repository
-		cfg, err := repo.Config() //nolint:govet // Shadow in test setup is acceptable for readability
+		cfg, err := repo.Config() //nolint:govet // shadow
 		Expect(err).NotTo(HaveOccurred())
 		cfg.User.Name = testAuthor.Name
 		cfg.User.Email = testAuthor.Email
@@ -63,13 +63,13 @@ var _ = Describe("SDKRepository", func() {
 	AfterEach(func() {
 		// Restore original directory
 		if origDir != "" {
-			err := os.Chdir(origDir) //nolint:govet // Shadow in cleanup is acceptable for scoped error handling
+			err := os.Chdir(origDir) //nolint:govet // shadow for cleanup scope
 			Expect(err).NotTo(HaveOccurred())
 		}
 
 		// Clean up temp directory
 		if tempDir != "" {
-			err := os.RemoveAll(tempDir) //nolint:govet // Shadow in cleanup is acceptable for scoped error handling
+			err := os.RemoveAll(tempDir) //nolint:govet // shadow for cleanup scope
 			Expect(err).NotTo(HaveOccurred())
 		}
 	})
@@ -96,12 +96,13 @@ var _ = Describe("SDKRepository", func() {
 		Context("when not in a git repository", func() {
 			BeforeEach(func() {
 				// Remove .git directory
-				err := os.RemoveAll(filepath.Join(tempDir, ".git")) //nolint:govet // Shadow in nested test setup is acceptable
+				gitDir := filepath.Join(tempDir, ".git")
+				err := os.RemoveAll(gitDir) //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("should return ErrNotRepository", func() {
-				_, err := internalgit.DiscoverRepository() //nolint:govet // Shadow in test case is acceptable for readability
+				_, err := internalgit.DiscoverRepository() //nolint:govet // shadow
 				Expect(err).To(MatchError(internalgit.ErrNotRepository))
 			})
 		})
@@ -125,7 +126,7 @@ var _ = Describe("SDKRepository", func() {
 		})
 
 		It("should return the repository root directory", func() {
-			root, err := sdkRepo.GetRoot() //nolint:govet // Shadow in test case is acceptable for readability
+			root, err := sdkRepo.GetRoot() //nolint:govet // shadow
 			Expect(err).NotTo(HaveOccurred())
 			Expect(root).To(Equal(tempDir))
 		})
@@ -139,7 +140,7 @@ var _ = Describe("SDKRepository", func() {
 
 		Context("when no files are staged", func() {
 			It("should return empty list", func() {
-				files, err := sdkRepo.GetStagedFiles() //nolint:govet // Shadow in test case is acceptable for readability
+				files, err := sdkRepo.GetStagedFiles() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(BeEmpty())
 			})
@@ -149,7 +150,8 @@ var _ = Describe("SDKRepository", func() {
 			BeforeEach(func() {
 				// Create and stage a file
 				testFile := filepath.Join(tempDir, "test.txt")
-				err := os.WriteFile(testFile, []byte("test content"), 0o644) //nolint:govet // Shadow in nested test setup is acceptable
+				content := []byte("test content")
+				err := os.WriteFile(testFile, content, 0o644) //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 
 				worktree, err := repo.Worktree()
@@ -160,7 +162,7 @@ var _ = Describe("SDKRepository", func() {
 			})
 
 			It("should return the staged files", func() {
-				files, err := sdkRepo.GetStagedFiles() //nolint:govet // Shadow in test case is acceptable for readability
+				files, err := sdkRepo.GetStagedFiles() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(ConsistOf("test.txt"))
 			})
@@ -168,7 +170,7 @@ var _ = Describe("SDKRepository", func() {
 
 		Context("when multiple files are staged", func() {
 			BeforeEach(func() {
-				worktree, err := repo.Worktree() //nolint:govet // Shadow in nested test setup is acceptable
+				worktree, err := repo.Worktree() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 
 				for _, filename := range []string{"file1.txt", "file2.txt", "file3.txt"} {
@@ -182,7 +184,7 @@ var _ = Describe("SDKRepository", func() {
 			})
 
 			It("should return all staged files", func() {
-				files, err := sdkRepo.GetStagedFiles() //nolint:govet // Shadow in test case is acceptable for readability
+				files, err := sdkRepo.GetStagedFiles() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(ConsistOf("file1.txt", "file2.txt", "file3.txt"))
 			})
@@ -196,7 +198,7 @@ var _ = Describe("SDKRepository", func() {
 
 			// Create initial commit
 			testFile := filepath.Join(tempDir, "existing.txt")
-			err := os.WriteFile(testFile, []byte("original"), 0o644) //nolint:govet // Shadow in nested test setup is acceptable
+			err := os.WriteFile(testFile, []byte("original"), 0o644) //nolint:govet // shadow
 			Expect(err).NotTo(HaveOccurred())
 
 			worktree, err := repo.Worktree()
@@ -213,7 +215,7 @@ var _ = Describe("SDKRepository", func() {
 
 		Context("when no files are modified", func() {
 			It("should return empty list", func() {
-				files, err := sdkRepo.GetModifiedFiles() //nolint:govet // Shadow in test case is acceptable for readability
+				files, err := sdkRepo.GetModifiedFiles() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(BeEmpty())
 			})
@@ -222,12 +224,13 @@ var _ = Describe("SDKRepository", func() {
 		Context("when files are modified but not staged", func() {
 			BeforeEach(func() {
 				testFile := filepath.Join(tempDir, "existing.txt")
-				err := os.WriteFile(testFile, []byte("modified content"), 0o644) //nolint:govet // Shadow in nested test setup is acceptable
+				content := []byte("modified content")
+				err := os.WriteFile(testFile, content, 0o644) //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("should return the modified files", func() {
-				files, err := sdkRepo.GetModifiedFiles() //nolint:govet // Shadow in test case is acceptable for readability
+				files, err := sdkRepo.GetModifiedFiles() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(ConsistOf("existing.txt"))
 			})
@@ -242,7 +245,7 @@ var _ = Describe("SDKRepository", func() {
 
 		Context("when no untracked files exist", func() {
 			It("should return empty list", func() {
-				files, err := sdkRepo.GetUntrackedFiles() //nolint:govet // Shadow in test case is acceptable for readability
+				files, err := sdkRepo.GetUntrackedFiles() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(BeEmpty())
 			})
@@ -251,12 +254,12 @@ var _ = Describe("SDKRepository", func() {
 		Context("when untracked files exist", func() {
 			BeforeEach(func() {
 				testFile := filepath.Join(tempDir, "untracked.txt")
-				err := os.WriteFile(testFile, []byte("untracked"), 0o644) //nolint:govet // Shadow in nested test setup is acceptable
+				err := os.WriteFile(testFile, []byte("untracked"), 0o644) //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("should return the untracked files", func() {
-				files, err := sdkRepo.GetUntrackedFiles() //nolint:govet // Shadow in test case is acceptable for readability
+				files, err := sdkRepo.GetUntrackedFiles() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(ConsistOf("untracked.txt"))
 			})
@@ -270,7 +273,7 @@ var _ = Describe("SDKRepository", func() {
 
 			// Create initial commit to establish HEAD
 			testFile := filepath.Join(tempDir, "initial.txt")
-			err := os.WriteFile(testFile, []byte("initial"), 0o644) //nolint:govet // Shadow in nested test setup is acceptable
+			err := os.WriteFile(testFile, []byte("initial"), 0o644) //nolint:govet // shadow
 			Expect(err).NotTo(HaveOccurred())
 
 			worktree, err := repo.Worktree()
@@ -286,14 +289,14 @@ var _ = Describe("SDKRepository", func() {
 		})
 
 		It("should return the current branch name", func() {
-			branch, err := sdkRepo.GetCurrentBranch() //nolint:govet // Shadow in test case is acceptable for readability
+			branch, err := sdkRepo.GetCurrentBranch() //nolint:govet // shadow
 			Expect(err).NotTo(HaveOccurred())
 			Expect(branch).To(Equal("master"))
 		})
 
 		Context("when on a different branch", func() {
 			BeforeEach(func() {
-				worktree, err := repo.Worktree() //nolint:govet // Shadow in nested test setup is acceptable
+				worktree, err := repo.Worktree() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 
 				err = worktree.Checkout(&git.CheckoutOptions{
@@ -304,7 +307,7 @@ var _ = Describe("SDKRepository", func() {
 			})
 
 			It("should return the feature branch name", func() {
-				branch, err := sdkRepo.GetCurrentBranch() //nolint:govet // Shadow in test case is acceptable for readability
+				branch, err := sdkRepo.GetCurrentBranch() //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(branch).To(Equal("feature"))
 			})
@@ -318,7 +321,7 @@ var _ = Describe("SDKRepository", func() {
 
 			// Create initial commit
 			testFile := filepath.Join(tempDir, "initial.txt")
-			err := os.WriteFile(testFile, []byte("initial"), 0o644) //nolint:govet // Shadow in nested test setup is acceptable
+			err := os.WriteFile(testFile, []byte("initial"), 0o644) //nolint:govet // shadow
 			Expect(err).NotTo(HaveOccurred())
 
 			worktree, err := repo.Worktree()
@@ -336,7 +339,7 @@ var _ = Describe("SDKRepository", func() {
 		Context("when branch has tracking remote", func() {
 			BeforeEach(func() {
 				// Add remote
-				_, err := repo.CreateRemote(&config.RemoteConfig{ //nolint:govet // Shadow in nested test setup is acceptable
+				_, err := repo.CreateRemote(&config.RemoteConfig{ //nolint:govet // shadow
 					Name: "origin",
 					URLs: []string{"https://github.com/test/repo.git"},
 				})
@@ -357,7 +360,7 @@ var _ = Describe("SDKRepository", func() {
 			})
 
 			It("should return the tracking remote", func() {
-				remote, err := sdkRepo.GetBranchRemote("master") //nolint:govet // Shadow in test case is acceptable for readability
+				remote, err := sdkRepo.GetBranchRemote("master") //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(remote).To(Equal("origin"))
 			})
@@ -365,14 +368,14 @@ var _ = Describe("SDKRepository", func() {
 
 		Context("when branch does not exist", func() {
 			It("should return ErrBranchNotFound", func() {
-				_, err := sdkRepo.GetBranchRemote("nonexistent") //nolint:govet // Shadow in test case is acceptable for readability
+				_, err := sdkRepo.GetBranchRemote("nonexistent") //nolint:govet // shadow
 				Expect(err).To(MatchError(ContainSubstring("branch not found")))
 			})
 		})
 
 		Context("when branch has no tracking remote", func() {
 			It("should return ErrNoTracking", func() {
-				_, err := sdkRepo.GetBranchRemote("master") //nolint:govet // Shadow in test case is acceptable for readability
+				_, err := sdkRepo.GetBranchRemote("master") //nolint:govet // shadow
 				Expect(err).To(MatchError(ContainSubstring("no tracking remote")))
 			})
 		})
@@ -386,7 +389,7 @@ var _ = Describe("SDKRepository", func() {
 
 		Context("when remote exists", func() {
 			BeforeEach(func() {
-				_, err := repo.CreateRemote(&config.RemoteConfig{ //nolint:govet // Shadow in nested test setup is acceptable
+				_, err := repo.CreateRemote(&config.RemoteConfig{ //nolint:govet // shadow
 					Name: "origin",
 					URLs: []string{"https://github.com/test/repo.git"},
 				})
@@ -394,7 +397,7 @@ var _ = Describe("SDKRepository", func() {
 			})
 
 			It("should return the remote URL", func() {
-				url, err := sdkRepo.GetRemoteURL("origin") //nolint:govet // Shadow in test case is acceptable for readability
+				url, err := sdkRepo.GetRemoteURL("origin") //nolint:govet // shadow
 				Expect(err).NotTo(HaveOccurred())
 				Expect(url).To(Equal("https://github.com/test/repo.git"))
 			})
@@ -402,7 +405,7 @@ var _ = Describe("SDKRepository", func() {
 
 		Context("when remote does not exist", func() {
 			It("should return ErrRemoteNotFound", func() {
-				_, err := sdkRepo.GetRemoteURL("nonexistent") //nolint:govet // Shadow in test case is acceptable for readability
+				_, err := sdkRepo.GetRemoteURL("nonexistent") //nolint:govet // shadow
 				Expect(err).To(MatchError(ContainSubstring("remote not found")))
 			})
 		})

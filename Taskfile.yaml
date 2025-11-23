@@ -75,7 +75,7 @@ tasks:
           if [ -z "$files" ]; then
             echo ""
           else
-            echo "$files" | xargs -n1 dirname | sort -u | sed 's|^|./|' | sed 's|$|/...|'
+            echo "$files" | xargs -n1 dirname | sort -u | sed 's|^|./|' | sed 's|$|/...|' | tr '\n' ' '
           fi
     cmds:
       - |
@@ -99,19 +99,20 @@ tasks:
   lint:staged:
     desc: Run linters on modified and staged files only
     vars:
-      STAGED_FILES:
-        sh: git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true
-      MODIFIED_FILES:
-        sh: git diff --name-only --diff-filter=ACM | grep '\.go$' || true
-      ALL_CHANGED_FILES:
+      CHANGED_PACKAGES:
         sh: |
-          (git diff --cached --name-only --diff-filter=ACM; git diff --name-only --diff-filter=ACM) | \
-          grep '\.go$' | sort -u || true
+          files=$( (git diff --cached --name-only --diff-filter=ACM; git diff --name-only --diff-filter=ACM) | \
+                  grep '\.go$' | sort -u || true )
+          if [ -z "$files" ]; then
+            echo ""
+          else
+            echo "$files" | xargs -n1 dirname | sort -u | sed 's|^|./|' | sed 's|$|/...|' | tr '\n' ' '
+          fi
     cmds:
       - |
-        if [ -n "{{.ALL_CHANGED_FILES}}" ]; then
+        if [ -n "{{.CHANGED_PACKAGES}}" ]; then
           echo "Linting changed files..."
-          mise exec -- golangci-lint run {{.ALL_CHANGED_FILES}}
+          mise exec -- golangci-lint run {{.CHANGED_PACKAGES}}
         else
           echo "No Go files to lint"
         fi

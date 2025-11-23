@@ -115,17 +115,21 @@ jobs:
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
-				Expect(result.Message).To(ContainSubstring("GitHub Actions workflow validation failed"))
+				Expect(
+					result.Message,
+				).To(ContainSubstring("GitHub Actions workflow validation failed"))
 				Expect(result.Details["errors"]).To(ContainSubstring("missing version comment"))
 			})
 
-			It("should pass for tag-pinned action with explanation comment (previous line)", func() {
-				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
-					ToolInput: hook.ToolInput{
-						FilePath: "/project/.github/workflows/test.yml",
-						Content: `name: Test
+			It(
+				"should pass for tag-pinned action with explanation comment (previous line)",
+				func() {
+					ctx := &hook.Context{
+						EventType: hook.PreToolUse,
+						ToolName:  hook.Write,
+						ToolInput: hook.ToolInput{
+							FilePath: "/project/.github/workflows/test.yml",
+							Content: `name: Test
 on: push
 jobs:
   test:
@@ -134,12 +138,13 @@ jobs:
       # Cannot pin by digest: marketplace action with frequent updates
       - uses: vendor/custom-action@v1
 `,
-					},
-				}
+						},
+					}
 
-				result := validator.Validate(ctx)
-				Expect(result.Passed).To(BeTrue())
-			})
+					result := validator.Validate(ctx)
+					Expect(result.Passed).To(BeTrue())
+				},
+			)
 
 			It("should pass for tag-pinned action with explanation comment (inline)", func() {
 				ctx := &hook.Context{

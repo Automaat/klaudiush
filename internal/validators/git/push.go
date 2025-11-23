@@ -170,10 +170,13 @@ func (v *PushValidator) formatRemoteNotFoundError(remote string, remotes map[str
 		}
 	}
 
-	return templates.MustExecute(templates.PushRemoteNotFoundTemplate, templates.PushRemoteNotFoundData{
-		Remote:  remote,
-		Remotes: remoteInfos,
-	})
+	return templates.MustExecute(
+		templates.PushRemoteNotFoundTemplate,
+		templates.PushRemoteNotFoundData{
+			Remote:  remote,
+			Remotes: remoteInfos,
+		},
+	)
 }
 
 // detectProjectType detects the project type based on the repo root path

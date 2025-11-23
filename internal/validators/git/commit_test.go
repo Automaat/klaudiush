@@ -211,7 +211,9 @@ var _ = Describe("CommitValidator", func() {
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("doesn't follow conventional commits format"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("doesn't follow conventional commits format"))
 			})
 
 			It("should fail with invalid type", func() {
@@ -225,7 +227,9 @@ var _ = Describe("CommitValidator", func() {
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("doesn't follow conventional commits format"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("doesn't follow conventional commits format"))
 			})
 		})
 
@@ -241,7 +245,9 @@ var _ = Describe("CommitValidator", func() {
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Use 'ci(...)' not 'feat(ci)'"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Use 'ci(...)' not 'feat(ci)'"))
 			})
 
 			It("should fail with fix(test)", func() {
@@ -255,7 +261,9 @@ var _ = Describe("CommitValidator", func() {
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Use 'test(...)' not 'fix(test)'"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Use 'test(...)' not 'fix(test)'"))
 			})
 
 			It("should fail with feat(docs)", func() {
@@ -269,7 +277,9 @@ var _ = Describe("CommitValidator", func() {
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Use 'docs(...)' not 'feat(docs)'"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Use 'docs(...)' not 'feat(docs)'"))
 			})
 
 			It("should fail with fix(build)", func() {
@@ -283,7 +293,9 @@ var _ = Describe("CommitValidator", func() {
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Use 'build(...)' not 'fix(build)'"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Use 'build(...)' not 'fix(build)'"))
 			})
 
 			It("should pass with ci(workflow)", func() {
@@ -393,7 +405,9 @@ Changes:
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Missing empty line before first list item"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Missing empty line before first list item"))
 			})
 
 			It("should handle numbered lists", func() {
@@ -411,7 +425,9 @@ Changes:
 
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Missing empty line before first list item"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Missing empty line before first list item"))
 			})
 		})
 

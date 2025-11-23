@@ -205,19 +205,25 @@ func (v *BranchValidator) validateBranchName(branchName string) *validator.Resul
 
 	// Check for uppercase characters.
 	if branchName != strings.ToLower(branchName) {
-		message := templates.MustExecute(templates.BranchUppercaseTemplate, templates.BranchUppercaseData{
-			BranchName:  branchName,
-			LowerBranch: strings.ToLower(branchName),
-		})
+		message := templates.MustExecute(
+			templates.BranchUppercaseTemplate,
+			templates.BranchUppercaseData{
+				BranchName:  branchName,
+				LowerBranch: strings.ToLower(branchName),
+			},
+		)
 
 		return validator.Fail(message)
 	}
 
 	// Check format: type/description.
 	if !branchNamePattern.MatchString(branchName) {
-		message := templates.MustExecute(templates.BranchPatternTemplate, templates.BranchPatternData{
-			BranchName: branchName,
-		})
+		message := templates.MustExecute(
+			templates.BranchPatternTemplate,
+			templates.BranchPatternData{
+				BranchName: branchName,
+			},
+		)
 
 		return validator.Fail(message)
 	}
@@ -225,9 +231,12 @@ func (v *BranchValidator) validateBranchName(branchName string) *validator.Resul
 	// Extract and validate type.
 	parts := strings.SplitN(branchName, "/", minBranchParts)
 	if len(parts) != minBranchParts {
-		message := templates.MustExecute(templates.BranchMissingPartsTemplate, templates.BranchMissingPartsData{
-			BranchName: branchName,
-		})
+		message := templates.MustExecute(
+			templates.BranchMissingPartsTemplate,
+			templates.BranchMissingPartsData{
+				BranchName: branchName,
+			},
+		)
 
 		return validator.Fail(message)
 	}
@@ -239,10 +248,13 @@ func (v *BranchValidator) validateBranchName(branchName string) *validator.Resul
 			validTypes = append(validTypes, t)
 		}
 
-		message := templates.MustExecute(templates.BranchInvalidTypeTemplate, templates.BranchInvalidTypeData{
-			BranchType:    branchType,
-			ValidTypesStr: strings.Join(validTypes, ", "),
-		})
+		message := templates.MustExecute(
+			templates.BranchInvalidTypeTemplate,
+			templates.BranchInvalidTypeData{
+				BranchType:    branchType,
+				ValidTypesStr: strings.Join(validTypes, ", "),
+			},
+		)
 
 		return validator.Fail(message)
 	}

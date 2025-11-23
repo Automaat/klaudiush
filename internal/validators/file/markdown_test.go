@@ -110,7 +110,9 @@ code
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 2: Code block should have empty line before it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 2: Code block should have empty line before it"))
 			})
 
 			It("passes when code block has empty line before", func() {
@@ -154,7 +156,9 @@ code2
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 8: Code block should have empty line before it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 8: Code block should have empty line before it"))
 			})
 		})
 
@@ -168,7 +172,9 @@ code2
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 2: First list item should have empty line before it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 2: First list item should have empty line before it"))
 			})
 
 			It("passes when first list item has empty line before", func() {
@@ -238,7 +244,9 @@ Text immediately after
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 1: Header should have empty line after it"))
 			})
 
 			It("passes when header has empty line after", func() {
@@ -265,9 +273,15 @@ Text
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Header should have empty line after it"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 5: Header should have empty line after it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 1: Header should have empty line after it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 3: Header should have empty line after it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 5: Header should have empty line after it"))
 			})
 		})
 
@@ -293,7 +307,9 @@ Text
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
-				Expect(result.Details["errors"]).To(ContainSubstring("Previous line: '" + strings.Repeat("x", 60)))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Previous line: '" + strings.Repeat("x", 60)))
 				Expect(result.Details["errors"]).NotTo(ContainSubstring(strings.Repeat("x", 70)))
 			})
 
@@ -323,9 +339,15 @@ code
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 1: Header should have empty line after it"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: First list item should have empty line before it"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 4: Code block should have empty line before it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 1: Header should have empty line after it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 3: First list item should have empty line before it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 4: Code block should have empty line before it"))
 			})
 
 			It("handles real-world markdown example", func() {
@@ -373,8 +395,12 @@ Done!
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 3 spaces"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Found: 1 spaces, expected: at least 3 spaces"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 3 spaces"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Found: 1 spaces, expected: at least 3 spaces"))
 			})
 
 			It("passes when code block in numbered list is properly indented", func() {
@@ -398,7 +424,9 @@ Done!
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 2 spaces"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 2 spaces"))
 			})
 
 			It("passes when code block in bulleted list is properly indented", func() {
@@ -421,7 +449,9 @@ Done!
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 4 spaces"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 3: Code block in list item should be indented by at least 4 spaces"))
 			})
 
 			It("passes when code block has extra indentation", func() {
@@ -455,7 +485,9 @@ code
 				result := v.Validate(ctx)
 				// Should warn about missing empty line before code block, but NOT about indentation
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Code block should have empty line before it"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Code block should have empty line before it"))
 				Expect(result.Details["errors"]).NotTo(ContainSubstring("indented"))
 			})
 		})
@@ -473,7 +505,9 @@ code
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
-				Expect(result.Details["errors"]).To(ContainSubstring("Line 4: Code block should have only one empty line before it, not multiple"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Line 4: Code block should have only one empty line before it, not multiple"))
 			})
 
 			It("passes when only one empty line before code block", func() {
@@ -498,7 +532,9 @@ code
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Code block should have only one empty line before it, not multiple"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Code block should have only one empty line before it, not multiple"))
 			})
 
 			It("handles multiple empty lines after header", func() {
@@ -511,7 +547,9 @@ code
 				ctx.ToolInput.Content = content
 				result := v.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Details["errors"]).To(ContainSubstring("Code block should have only one empty line before it, not multiple"))
+				Expect(
+					result.Details["errors"],
+				).To(ContainSubstring("Code block should have only one empty line before it, not multiple"))
 			})
 		})
 	})

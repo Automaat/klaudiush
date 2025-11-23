@@ -82,8 +82,12 @@ EOF
 
 				gitCmd, err := parser.ParseGitCommand(result.GitOperations[0])
 				Expect(err).NotTo(HaveOccurred())
-				Expect(gitCmd.ExtractCommitMessage()).To(ContainSubstring("feat(validators): add new validator"))
-				Expect(gitCmd.ExtractCommitMessage()).To(ContainSubstring("This is a multi-line commit message"))
+				Expect(
+					gitCmd.ExtractCommitMessage(),
+				).To(ContainSubstring("feat(validators): add new validator"))
+				Expect(
+					gitCmd.ExtractCommitMessage(),
+				).To(ContainSubstring("This is a multi-line commit message"))
 				Expect(gitCmd.ExtractCommitMessage()).To(ContainSubstring("from a heredoc."))
 			})
 

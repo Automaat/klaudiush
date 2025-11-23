@@ -22,10 +22,24 @@ var ExpectedSignoff = "" // Default empty, must be set at build time
 
 var (
 	// validTypes from commitlint config-conventional
-	validTypes = []string{"build", "chore", "ci", "docs", "feat", "fix", "perf", "refactor", "revert", "style", "test"}
+	validTypes = []string{
+		"build",
+		"chore",
+		"ci",
+		"docs",
+		"feat",
+		"fix",
+		"perf",
+		"refactor",
+		"revert",
+		"style",
+		"test",
+	}
 
 	// Conventional commit format: type(scope): description
-	conventionalCommitRegex = regexp.MustCompile(`^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-zA-Z0-9_\/-]+\))?!?: .+`)
+	conventionalCommitRegex = regexp.MustCompile(
+		`^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-zA-Z0-9_\/-]+\))?!?: .+`,
+	)
 
 	// Infrastructure scope misuse: feat(ci), fix(test), etc.
 	infraScopeMisuseRegex = regexp.MustCompile(`^(feat|fix)\((ci|test|docs|build)\):`)
@@ -49,7 +63,10 @@ func (v *CommitValidator) validateMessage(message string) *validator.Result {
 
 	// Check for Claude AI attribution (allow CLAUDE.md file references)
 	if v.containsClaudeAIAttribution(message) {
-		errors = append(errors, "❌ Commit message contains AI attribution - remove any AI generation attribution")
+		errors = append(
+			errors,
+			"❌ Commit message contains AI attribution - remove any AI generation attribution",
+		)
 	}
 
 	// Split message into lines
@@ -97,12 +114,23 @@ func (v *CommitValidator) validateTitle(lines []string) (string, []string) {
 
 	// Check title length
 	if len(title) > maxTitleLength {
-		errors = append(errors, fmt.Sprintf("❌ Title exceeds %d characters (%d chars): '%s'", maxTitleLength, len(title), title))
+		errors = append(
+			errors,
+			fmt.Sprintf(
+				"❌ Title exceeds %d characters (%d chars): '%s'",
+				maxTitleLength,
+				len(title),
+				title,
+			),
+		)
 	}
 
 	// Check conventional commit format
 	if !conventionalCommitRegex.MatchString(title) {
-		errors = append(errors, "❌ Title doesn't follow conventional commits format: type(scope): description")
+		errors = append(
+			errors,
+			"❌ Title doesn't follow conventional commits format: type(scope): description",
+		)
 		errors = append(errors, "   Valid types: "+strings.Join(validTypes, ", "))
 		errors = append(errors, fmt.Sprintf("   Current title: '%s'", title))
 	}
@@ -262,7 +290,12 @@ func (v *CommitValidator) formatLineLengthError(line string, lineNum, lineLen in
 	truncated := truncateLine(line)
 
 	return []string{
-		fmt.Sprintf("❌ Line %d exceeds %d characters (%d chars, >5 over limit)", lineNum+1, maxBodyLineLength, lineLen),
+		fmt.Sprintf(
+			"❌ Line %d exceeds %d characters (%d chars, >5 over limit)",
+			lineNum+1,
+			maxBodyLineLength,
+			lineLen,
+		),
 		fmt.Sprintf("   Line: '%s'", truncated),
 	}
 }
@@ -294,7 +327,12 @@ func (v *CommitValidator) checkInfraScopeMisuse(title string) []string {
 	scopeMatch := matches[2] // ci, test, docs, or build
 
 	return []string{
-		fmt.Sprintf("❌ Use '%s(...)' not '%s(%s)' for infrastructure changes", scopeMatch, typeMatch, scopeMatch),
+		fmt.Sprintf(
+			"❌ Use '%s(...)' not '%s(%s)' for infrastructure changes",
+			scopeMatch,
+			typeMatch,
+			scopeMatch,
+		),
 		"   feat/fix should only be used for user-facing changes",
 	}
 }
@@ -316,7 +354,10 @@ func (v *CommitValidator) checkPRReferences(message string) []string {
 	// Show examples for URL references
 	if urlMatch := regexp.MustCompile(`github\.com/.+/pull/[0-9]+`).FindString(message); urlMatch != "" {
 		prNum := regexp.MustCompile(`[0-9]+$`).FindString(urlMatch)
-		errors = append(errors, fmt.Sprintf("   Found: 'https://%s' → Should be: '%s'", urlMatch, prNum))
+		errors = append(
+			errors,
+			fmt.Sprintf("   Found: 'https://%s' → Should be: '%s'", urlMatch, prNum),
+		)
 	}
 
 	return errors

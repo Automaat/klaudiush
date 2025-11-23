@@ -155,7 +155,9 @@ var _ = Describe("PushValidator", func() {
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Message).To(ContainSubstring("Git push validation failed"))
-				Expect(result.Message).To(ContainSubstring("Kong org projects should push to 'upstream' remote"))
+				Expect(
+					result.Message,
+				).To(ContainSubstring("Kong org projects should push to 'upstream' remote"))
 				Expect(result.Message).To(ContainSubstring("'origin' is your fork"))
 				Expect(result.Message).To(ContainSubstring("git push upstream branch-name"))
 			})
@@ -170,7 +172,9 @@ var _ = Describe("PushValidator", func() {
 				ctx := createContext("git push --force origin feature-branch")
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
-				Expect(result.Message).To(ContainSubstring("Kong org projects should push to 'upstream' remote"))
+				Expect(
+					result.Message,
+				).To(ContainSubstring("Kong org projects should push to 'upstream' remote"))
 			})
 
 			It("detects Kong with capital K", func() {
@@ -191,9 +195,15 @@ var _ = Describe("PushValidator", func() {
 				result := validator.Validate(ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeFalse())
-				Expect(result.Message).To(ContainSubstring("Warning: Pushing to 'upstream' remote in kumahq/kuma"))
-				Expect(result.Message).To(ContainSubstring("This should only be done when explicitly intended"))
-				Expect(result.Message).To(ContainSubstring("Normal workflow: push to 'origin' (your fork)"))
+				Expect(
+					result.Message,
+				).To(ContainSubstring("Warning: Pushing to 'upstream' remote in kumahq/kuma"))
+				Expect(
+					result.Message,
+				).To(ContainSubstring("This should only be done when explicitly intended"))
+				Expect(
+					result.Message,
+				).To(ContainSubstring("Normal workflow: push to 'origin' (your fork)"))
 			})
 
 			It("allows push to origin without warning", func() {

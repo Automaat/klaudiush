@@ -88,9 +88,12 @@ func (v *AddValidator) Validate(ctx *hook.Context) *validator.Result {
 
 	// Report errors if tmp/ files found
 	if len(tmpFiles) > 0 {
-		message := templates.MustExecute(templates.GitAddTmpFilesTemplate, templates.GitAddTmpFilesData{
-			Files: tmpFiles,
-		})
+		message := templates.MustExecute(
+			templates.GitAddTmpFilesTemplate,
+			templates.GitAddTmpFilesData{
+				Files: tmpFiles,
+			},
+		)
 
 		return validator.Fail(
 			"Attempting to add files from tmp/ directory",

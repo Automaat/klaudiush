@@ -2,22 +2,30 @@ package templates
 
 var (
 	// GitAddTmpFilesTemplate formats error message for tmp/ files in git add
-	GitAddTmpFilesTemplate = Parse("git_add_tmp_files", `Files in tmp/ should be in .gitignore or .git/info/exclude
+	GitAddTmpFilesTemplate = Parse(
+		"git_add_tmp_files",
+		`Files in tmp/ should be in .gitignore or .git/info/exclude
 
 Files being added:
 {{range .Files}}  - {{.}}
 {{end}}
 Add tmp/ to .git/info/exclude:
-  echo 'tmp/' >> .git/info/exclude`)
+  echo 'tmp/' >> .git/info/exclude`,
+	)
 
 	// GitCommitFlagsTemplate formats error message for missing -sS flags
-	GitCommitFlagsTemplate = Parse("git_commit_flags", `Git commit must use -sS flags (signoff + GPG sign)
+	GitCommitFlagsTemplate = Parse(
+		"git_commit_flags",
+		`Git commit must use -sS flags (signoff + GPG sign)
 
 Current command: git commit {{.ArgsStr}}
-Expected: git commit -sS -m "message"`)
+Expected: git commit -sS -m "message"`,
+	)
 
 	// GitCommitNoStagedTemplate formats error message for no staged files
-	GitCommitNoStagedTemplate = Parse("git_commit_no_staged", `No files staged for commit and no -a/-A flag specified
+	GitCommitNoStagedTemplate = Parse(
+		"git_commit_no_staged",
+		`No files staged for commit and no -a/-A flag specified
 
 Current status:
   Modified files (not staged): {{.ModifiedCount}}
@@ -26,7 +34,8 @@ Current status:
 
 Did you forget to:
   • Stage files? Run 'git add <files>' or 'git add .'
-  • Use -a flag? Run 'git commit -a' to commit all modified files`)
+  • Use -a flag? Run 'git commit -a' to commit all modified files`,
+	)
 
 	// BranchSpaceErrorTemplate formats error for branch names with spaces
 	BranchSpaceErrorTemplate = Parse("branch_space_error", `Branch name appears to contain spaces
@@ -53,11 +62,14 @@ Valid types: feat, fix, docs, style, refactor, test, chore, ci, build, perf
 Example: feat/add-user-auth or fix/login-bug-123`)
 
 	// BranchMissingPartsTemplate formats error for missing type or description
-	BranchMissingPartsTemplate = Parse("branch_missing_parts", `Branch name must contain type and description
+	BranchMissingPartsTemplate = Parse(
+		"branch_missing_parts",
+		`Branch name must contain type and description
 
 Branch name '{{.BranchName}}' is missing type or description
 
-Expected format: <type>/<description>`)
+Expected format: <type>/<description>`,
+	)
 
 	// BranchInvalidTypeTemplate formats error for invalid branch type
 	BranchInvalidTypeTemplate = Parse("branch_invalid_type", `Invalid branch type
@@ -67,12 +79,15 @@ Branch type '{{.BranchType}}' is not valid
 Valid types: {{.ValidTypesStr}}`)
 
 	// PushRemoteNotFoundTemplate formats error for missing remote
-	PushRemoteNotFoundTemplate = Parse("push_remote_not_found", `❌ Remote '{{.Remote}}' does not exist
+	PushRemoteNotFoundTemplate = Parse(
+		"push_remote_not_found",
+		`❌ Remote '{{.Remote}}' does not exist
 
 Available remotes:
 {{range .Remotes}}  {{.Name}}  {{.URL}}
 {{end}}
-Use 'git remote -v' to list all configured remotes.`)
+Use 'git remote -v' to list all configured remotes.`,
+	)
 
 	// PushKongOrgTemplate formats error for Kong org push to origin
 	PushKongOrgTemplate = Parse("push_kong_org", `🚫 Git push validation failed:
@@ -83,9 +98,12 @@ Use 'git remote -v' to list all configured remotes.`)
 Expected: git push upstream branch-name`)
 
 	// PushKumaWarningTemplate formats warning for Kuma push to upstream
-	PushKumaWarningTemplate = Parse("push_kuma_warning", `⚠️  Warning: Pushing to 'upstream' remote in kumahq/kuma
+	PushKumaWarningTemplate = Parse(
+		"push_kuma_warning",
+		`⚠️  Warning: Pushing to 'upstream' remote in kumahq/kuma
    This should only be done when explicitly intended
-   Normal workflow: push to 'origin' (your fork)`)
+   Normal workflow: push to 'origin' (your fork)`,
+	)
 
 	// GitNoVerifyTemplate formats error for --no-verify flag usage
 	GitNoVerifyTemplate = Parse("git_no_verify", `Git commit --no-verify is not allowed

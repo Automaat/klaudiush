@@ -157,5 +157,8 @@ func (v *ShellScriptValidator) formatShellCheckOutput(output string) string {
 		}
 	}
 
-	return "Shellcheck validation failed\n\n" + strings.Join(cleanLines, "\n") + "\n\nFix these issues before committing."
+	return "Shellcheck validation failed\n\n" + strings.Join(
+		cleanLines,
+		"\n",
+	) + "\n\nFix these issues before committing."
 }
