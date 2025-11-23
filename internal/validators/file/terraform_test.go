@@ -1,6 +1,7 @@
 package file_test
 
 import (
+	"context"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -40,7 +41,7 @@ var _ = Describe("TerraformValidator", func() {
 		Context("with valid terraform content", func() {
 			It("passes for empty content", func() {
 				ctx.ToolInput.Content = ""
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -55,7 +56,7 @@ var _ = Describe("TerraformValidator", func() {
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 
 				// This will pass if terraform/tofu is not installed or if formatting is correct
 				// We're just testing that the validator doesn't crash
@@ -76,7 +77,7 @@ variable "instance_count" {
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 
@@ -87,7 +88,7 @@ variable "instance_count" {
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 		})
@@ -100,7 +101,7 @@ instance_type="t2.micro"
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 
 				// If terraform/tofu is installed, this should warn about formatting
 				// If not installed, it will pass with a warning about missing tools
@@ -113,7 +114,7 @@ type=string
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 		})
@@ -123,25 +124,25 @@ type=string
 				ctx.ToolName = hook.Edit
 				ctx.ToolInput.FilePath = "/path/to/main.tf"
 				ctx.ToolInput.Content = ""
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
 			It("skips validation when no content available", func() {
 				ctx.ToolInput.Content = ""
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
 			It("handles empty file content", func() {
 				ctx.ToolInput.Content = ""
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
 			It("handles whitespace-only content", func() {
 				ctx.ToolInput.Content = "   \n\n   \n"
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 		})
@@ -161,7 +162,7 @@ type=string
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 
@@ -183,7 +184,7 @@ type=string
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 
@@ -198,7 +199,7 @@ type=string
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 
@@ -223,7 +224,7 @@ terraform {
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 		})
@@ -286,7 +287,7 @@ output "instance_ip" {
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 
@@ -304,7 +305,7 @@ resource "aws_instance" "conditional" {
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 
@@ -328,7 +329,7 @@ resource "aws_instance" "multiple" {
 }
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result).NotTo(BeNil())
 			})
 		})

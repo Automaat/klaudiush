@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -125,7 +126,7 @@ func run(_ *cobra.Command, _ []string) error {
 	disp := dispatcher.NewDispatcher(registry, log)
 
 	// Dispatch validation
-	errors := disp.Dispatch(ctx)
+	errors := disp.Dispatch(context.Background(), ctx)
 
 	// Check if we should block
 	if dispatcher.ShouldBlock(errors) {

@@ -1,6 +1,8 @@
 package notification_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -29,12 +31,12 @@ var _ = Describe("BellValidator", func() {
 			})
 
 			It("should pass", func() {
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
 			It("should not block", func() {
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.ShouldBlock).To(BeFalse())
 			})
 		})
@@ -45,14 +47,14 @@ var _ = Describe("BellValidator", func() {
 			})
 
 			It("should pass", func() {
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
 
 		Context("when notification type is empty", func() {
 			It("should pass", func() {
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})

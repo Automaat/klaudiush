@@ -1,6 +1,7 @@
 package file_test
 
 import (
+	"context"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -38,7 +39,7 @@ var _ = Describe("WorkflowValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -52,7 +53,7 @@ var _ = Describe("WorkflowValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -75,7 +76,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -97,7 +98,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -118,7 +119,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(
@@ -147,7 +148,7 @@ jobs:
 						},
 					}
 
-					result := validator.Validate(ctx)
+					result := validator.Validate(context.Background(), ctx)
 					Expect(result.Passed).To(BeTrue())
 				},
 			)
@@ -169,7 +170,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -190,7 +191,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Details["errors"]).To(ContainSubstring("uses tag without digest"))
@@ -213,7 +214,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -234,7 +235,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -257,7 +258,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Details["errors"]).To(ContainSubstring("uses tag without digest"))
@@ -282,7 +283,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -303,7 +304,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -317,7 +318,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -338,7 +339,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -359,7 +360,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -381,7 +382,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("missing version comment"))
 			})
@@ -397,7 +398,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -420,7 +421,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -441,7 +442,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -465,7 +466,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -487,7 +488,7 @@ jobs:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("uses tag without digest"))
 			})

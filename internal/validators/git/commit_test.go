@@ -1,6 +1,8 @@
 package git_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -35,7 +37,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -48,7 +50,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -61,7 +63,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -78,7 +80,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -93,7 +95,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Message).To(ContainSubstring("Git commit must use -sS flags"))
 			})
@@ -107,7 +109,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Message).To(ContainSubstring("Git commit must use -sS flags"))
 			})
@@ -121,7 +123,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Message).To(ContainSubstring("Git commit must use -sS flags"))
 			})
@@ -139,7 +141,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -152,7 +154,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -165,7 +167,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -178,7 +180,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -194,7 +196,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Message).To(ContainSubstring("Commit message validation failed"))
 				Expect(result.Details["errors"]).To(ContainSubstring("Title exceeds 50 characters"))
@@ -209,7 +211,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -225,7 +227,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -243,7 +245,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -259,7 +261,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -275,7 +277,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -291,7 +293,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -307,7 +309,7 @@ var _ = Describe("CommitValidator", func() {
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -327,7 +329,7 @@ seventy-two character limit for proper formatting.`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -344,7 +346,7 @@ Reference: https://github.com/smykla-labs/claude-hooks/pull/123/files#diff-abc12
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				// Should fail for PR reference, but pass for URL length
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).ToNot(ContainSubstring("exceeds 72 characters"))
@@ -363,7 +365,7 @@ This is a line that definitely exceeds the seventy-two character limit and even 
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("exceeds 72 characters"))
 			})
@@ -386,7 +388,7 @@ Changes:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -403,7 +405,7 @@ Changes:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -423,7 +425,7 @@ Changes:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -441,7 +443,7 @@ Changes:
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("PR references found"))
 				Expect(result.Details["errors"]).To(ContainSubstring("#123"))
@@ -460,7 +462,7 @@ See github.com/smykla-labs/claude-hooks/pull/123`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("PR references found"))
 			})
@@ -474,7 +476,7 @@ See github.com/smykla-labs/claude-hooks/pull/123`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -489,7 +491,7 @@ See github.com/smykla-labs/claude-hooks/pull/123`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("AI attribution"))
 			})
@@ -503,7 +505,7 @@ See github.com/smykla-labs/claude-hooks/pull/123`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -516,7 +518,7 @@ See github.com/smykla-labs/claude-hooks/pull/123`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("AI attribution"))
 			})
@@ -530,7 +532,7 @@ See github.com/smykla-labs/claude-hooks/pull/123`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -548,7 +550,7 @@ EOF
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -561,7 +563,7 @@ EOF
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -590,7 +592,7 @@ Signed-off-by: Test User <test@example.com>`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -607,7 +609,7 @@ Signed-off-by: Bart Smykla <wrong@example.com>`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("Wrong signoff identity"))
 			})
@@ -625,7 +627,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 					},
 				}
 
-				result := validator.Validate(ctx)
+				result := validator.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.Details["errors"]).To(ContainSubstring("Wrong signoff identity"))
 			})
@@ -642,7 +644,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})
@@ -657,7 +659,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -670,7 +672,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})
@@ -685,7 +687,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -698,7 +700,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeFalse())
 		})
 	})
@@ -716,7 +718,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -731,7 +733,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -746,7 +748,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})
@@ -761,7 +763,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -774,7 +776,7 @@ Signed-off-by: John Doe <bartek@smykla.com>`
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})

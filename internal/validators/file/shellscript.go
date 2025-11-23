@@ -38,19 +38,22 @@ func NewShellScriptValidator(
 }
 
 // Validate validates shell scripts using shellcheck.
-func (v *ShellScriptValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *ShellScriptValidator) Validate(
+	ctx context.Context,
+	hookCtx *hook.Context,
+) *validator.Result {
 	log := v.Logger()
 	log.Debug("validating shell script")
 
 	// Get the file path
-	filePath := ctx.GetFilePath()
+	filePath := hookCtx.GetFilePath()
 	if filePath == "" {
 		log.Debug("no file path provided")
 		return validator.Pass()
 	}
 
 	// Get content based on operation type
-	content, err := v.getContent(ctx, filePath)
+	content, err := v.getContent(hookCtx, filePath)
 	if err != nil {
 		log.Debug("failed to get content", "error", err)
 		return validator.Pass()
@@ -63,7 +66,7 @@ func (v *ShellScriptValidator) Validate(ctx *hook.Context) *validator.Result {
 	}
 
 	// Run shellcheck using the linter
-	lintCtx, cancel := context.WithTimeout(context.Background(), shellCheckTimeout)
+	lintCtx, cancel := context.WithTimeout(ctx, shellCheckTimeout)
 	defer cancel()
 
 	result := v.checker.Check(lintCtx, content)

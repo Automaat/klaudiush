@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"slices"
@@ -46,14 +47,14 @@ func NewPRValidator(log logger.Logger) *PRValidator {
 }
 
 // Validate checks gh pr create command for proper PR structure
-func (v *PRValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *PRValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 	log.Debug("Running PR validation")
 
 	// Parse the command
 	bashParser := parser.NewBashParser()
 
-	result, err := bashParser.Parse(ctx.GetCommand())
+	result, err := bashParser.Parse(hookCtx.GetCommand())
 	if err != nil {
 		log.Error("Failed to parse command", "error", err)
 		return validator.Warn(fmt.Sprintf("Failed to parse command: %v", err))
@@ -66,11 +67,11 @@ func (v *PRValidator) Validate(ctx *hook.Context) *validator.Result {
 		}
 
 		// Extract PR metadata from the full command
-		fullCmd := ctx.GetCommand()
+		fullCmd := hookCtx.GetCommand()
 		prData := v.extractPRData(fullCmd)
 
 		// Validate PR
-		return v.validatePR(prData)
+		return v.validatePR(ctx, prData)
 	}
 
 	log.Debug("No gh pr create commands found")
@@ -162,7 +163,7 @@ func (v *PRValidator) parseLabels(labelStr string) []string {
 }
 
 // validatePR performs comprehensive PR validation
-func (v *PRValidator) validatePR(data PRData) *validator.Result {
+func (v *PRValidator) validatePR(ctx context.Context, data PRData) *validator.Result {
 	var allErrors []string
 
 	var allWarnings []string
@@ -179,7 +180,7 @@ func (v *PRValidator) validatePR(data PRData) *validator.Result {
 	// 4. Validate markdown formatting
 	if data.Body != "" {
 		// External markdownlint validation
-		mdResult := ValidatePRMarkdown(data.Body)
+		mdResult := ValidatePRMarkdown(ctx, data.Body)
 		allErrors = append(allErrors, mdResult.Errors...)
 
 		// Internal markdown validation (code block indentation, empty lines, etc.)

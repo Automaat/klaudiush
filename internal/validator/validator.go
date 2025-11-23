@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"context"
+
 	"github.com/smykla-labs/claude-hooks/pkg/hook"
 	"github.com/smykla-labs/claude-hooks/pkg/logger"
 )
@@ -11,7 +13,7 @@ type Validator interface {
 	Name() string
 
 	// Validate validates the given context and returns a result.
-	Validate(ctx *hook.Context) *Result
+	Validate(ctx context.Context, hookCtx *hook.Context) *Result
 }
 
 // Result represents the validation result.
@@ -136,11 +138,11 @@ func (v *BaseValidator) Logger() logger.Logger {
 }
 
 // LogValidation logs the validation result.
-func (v *BaseValidator) LogValidation(ctx *hook.Context, result *Result) {
+func (v *BaseValidator) LogValidation(hookCtx *hook.Context, result *Result) {
 	if result.Passed {
 		v.logger.Info("validation passed",
 			"validator", v.name,
-			"tool", ctx.ToolName,
+			"tool", hookCtx.ToolName,
 		)
 
 		return
@@ -149,7 +151,7 @@ func (v *BaseValidator) LogValidation(ctx *hook.Context, result *Result) {
 	logMsg := "validation " + result.String()
 	kvs := []any{
 		"validator", v.name,
-		"tool", ctx.ToolName,
+		"tool", hookCtx.ToolName,
 		"message", result.Message,
 	}
 

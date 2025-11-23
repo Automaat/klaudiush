@@ -1,6 +1,7 @@
 package file_test
 
 import (
+	"context"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -37,7 +38,7 @@ var _ = Describe("ShellScriptValidator", func() {
 			ctx.ToolInput.Content = `#!/bin/bash
 echo "Hello, World!"
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -46,7 +47,7 @@ echo "Hello, World!"
 			ctx.ToolInput.Content = `#!/bin/sh
 echo "Hello, World!"
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})
@@ -57,7 +58,7 @@ echo "Hello, World!"
 			ctx.ToolInput.Content = `#!/bin/bash
 echo $UNDEFINED_VAR
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeFalse())
 			Expect(result.Message).To(ContainSubstring("Shellcheck validation failed"))
 		})
@@ -69,7 +70,7 @@ if [ -f file.txt ]
   echo "File exists"
 fi
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeFalse())
 			Expect(result.Message).To(ContainSubstring("Shellcheck validation failed"))
 		})
@@ -81,7 +82,7 @@ fi
 			ctx.ToolInput.Content = `#!/usr/bin/env fish
 echo "Hello from Fish"
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -90,7 +91,7 @@ echo "Hello from Fish"
 			ctx.ToolInput.Content = `#!/usr/bin/env fish
 echo "Hello from Fish"
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -99,7 +100,7 @@ echo "Hello from Fish"
 			ctx.ToolInput.Content = `#!/usr/bin/fish
 echo "Hello from Fish"
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -108,7 +109,7 @@ echo "Hello from Fish"
 			ctx.ToolInput.Content = `#!/bin/fish
 echo "Hello from Fish"
 `
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})
@@ -117,14 +118,14 @@ echo "Hello from Fish"
 		It("should pass when no file path provided", func() {
 			ctx.ToolInput.FilePath = ""
 			ctx.ToolInput.Content = ""
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
 		It("should pass for empty content", func() {
 			ctx.ToolInput.FilePath = "test.sh"
 			ctx.ToolInput.Content = ""
-			result := v.Validate(ctx)
+			result := v.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})

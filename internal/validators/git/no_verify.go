@@ -1,6 +1,8 @@
 package git
 
 import (
+	"context"
+
 	"github.com/smykla-labs/claude-hooks/internal/templates"
 	"github.com/smykla-labs/claude-hooks/internal/validator"
 	"github.com/smykla-labs/claude-hooks/pkg/hook"
@@ -21,13 +23,13 @@ func NewNoVerifyValidator(log logger.Logger) *NoVerifyValidator {
 }
 
 // Validate checks if git commit command contains --no-verify flag
-func (v *NoVerifyValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *NoVerifyValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 	log.Debug("Running no-verify validation")
 
 	bashParser := parser.NewBashParser()
 
-	result, err := bashParser.Parse(ctx.GetCommand())
+	result, err := bashParser.Parse(hookCtx.GetCommand())
 	if err != nil {
 		log.Error("Failed to parse command", "error", err)
 		return validator.Warn("Failed to parse command")

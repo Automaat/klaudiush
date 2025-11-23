@@ -1,6 +1,8 @@
 package git_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -39,7 +41,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
@@ -58,7 +60,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
@@ -76,7 +78,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
@@ -93,7 +95,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
@@ -112,7 +114,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.ShouldBlock).To(BeFalse())
@@ -127,7 +129,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -141,7 +143,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -155,7 +157,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -169,7 +171,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -183,7 +185,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -199,7 +201,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -213,7 +215,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -229,7 +231,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -243,7 +245,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeTrue())
 			})
@@ -259,7 +261,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
@@ -274,7 +276,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
@@ -289,7 +291,7 @@ var _ = Describe("GitAddValidator", func() {
 					},
 				}
 
-				result := val.Validate(ctx)
+				result := val.Validate(context.Background(), ctx)
 
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())

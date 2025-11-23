@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -36,14 +37,14 @@ func NewCommitValidator(log logger.Logger, gitRunner GitRunner) *CommitValidator
 }
 
 // Validate checks git commit command and message
-func (v *CommitValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *CommitValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 	log.Debug("Running git commit validation")
 
 	// Parse the command
 	bashParser := parser.NewBashParser()
 
-	result, err := bashParser.Parse(ctx.GetCommand())
+	result, err := bashParser.Parse(hookCtx.GetCommand())
 	if err != nil {
 		log.Error("Failed to parse command", "error", err)
 		return validator.Warn(fmt.Sprintf("Failed to parse command: %v", err))

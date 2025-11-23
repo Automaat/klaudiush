@@ -2,6 +2,7 @@
 package dispatcher
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -59,18 +60,18 @@ func NewDispatcher(registry *validator.Registry, logger logger.Logger) *Dispatch
 
 // Dispatch validates the context using all matching validators.
 // Returns a slice of validation errors (empty if all pass).
-func (d *Dispatcher) Dispatch(ctx *hook.Context) []*ValidationError {
+func (d *Dispatcher) Dispatch(ctx context.Context, hookCtx *hook.Context) []*ValidationError {
 	d.logger.Info("dispatching",
-		"event", ctx.EventType,
-		"tool", ctx.ToolName,
+		"event", hookCtx.EventType,
+		"tool", hookCtx.ToolName,
 	)
 
-	validators := d.registry.FindValidators(ctx)
+	validators := d.registry.FindValidators(hookCtx)
 
 	if len(validators) == 0 {
 		d.logger.Info("no validators found",
-			"event", ctx.EventType,
-			"tool", ctx.ToolName,
+			"event", hookCtx.EventType,
+			"tool", hookCtx.ToolName,
 		)
 
 		return nil
@@ -87,7 +88,7 @@ func (d *Dispatcher) Dispatch(ctx *hook.Context) []*ValidationError {
 			"validator", v.Name(),
 		)
 
-		result := v.Validate(ctx)
+		result := v.Validate(ctx, hookCtx)
 
 		if result.Passed {
 			d.logger.Info("validator passed",

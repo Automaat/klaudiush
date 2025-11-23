@@ -2,6 +2,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -39,7 +40,7 @@ func NewAddValidator(log logger.Logger, gitRunner GitRunner) *AddValidator {
 }
 
 // Validate checks if git add command includes files from tmp/ directory
-func (v *AddValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *AddValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 	log.Debug("Running git add validation")
 
@@ -60,7 +61,7 @@ func (v *AddValidator) Validate(ctx *hook.Context) *validator.Result {
 	// Parse the command
 	bashParser := parser.NewBashParser()
 
-	result, err := bashParser.Parse(ctx.GetCommand())
+	result, err := bashParser.Parse(hookCtx.GetCommand())
 	if err != nil {
 		log.Error("Failed to parse command", "error", err)
 		return validator.Warn(fmt.Sprintf("Failed to parse command: %v", err))

@@ -45,10 +45,13 @@ func NewTerraformValidator(
 }
 
 // Validate checks Terraform formatting and optionally runs tflint
-func (v *TerraformValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *TerraformValidator) Validate(
+	ctx context.Context,
+	hookCtx *hook.Context,
+) *validator.Result {
 	log := v.Logger()
 
-	content, err := v.getContent(ctx)
+	content, err := v.getContent(hookCtx)
 	if err != nil {
 		log.Debug("skipping terraform validation", "error", err)
 		return validator.Pass()
@@ -73,12 +76,12 @@ func (v *TerraformValidator) Validate(ctx *hook.Context) *validator.Result {
 	var warnings []string
 
 	// Run format check
-	if fmtWarning := v.checkFormat(content, tool); fmtWarning != "" {
+	if fmtWarning := v.checkFormat(ctx, content, tool); fmtWarning != "" {
 		warnings = append(warnings, fmtWarning)
 	}
 
 	// Run tflint if available
-	if lintWarnings := v.runTflint(tmpFile); len(lintWarnings) > 0 {
+	if lintWarnings := v.runTflint(ctx, tmpFile); len(lintWarnings) > 0 {
 		warnings = append(warnings, lintWarnings...)
 	}
 
@@ -160,15 +163,15 @@ func (v *TerraformValidator) getContent(ctx *hook.Context) (string, error) {
 }
 
 // checkFormat runs terraform/tofu fmt -check using TerraformFormatter
-func (v *TerraformValidator) checkFormat(content, tool string) string {
+func (v *TerraformValidator) checkFormat(ctx context.Context, content, tool string) string {
 	if tool == "" {
 		return "⚠️  Neither 'tofu' nor 'terraform' found in PATH - skipping format check"
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), terraformTimeout)
+	fmtCtx, cancel := context.WithTimeout(ctx, terraformTimeout)
 	defer cancel()
 
-	result := v.formatter.CheckFormat(ctx, content)
+	result := v.formatter.CheckFormat(fmtCtx, content)
 
 	if result.Success {
 		return ""
@@ -193,11 +196,11 @@ func (v *TerraformValidator) checkFormat(content, tool string) string {
 }
 
 // runTflint runs tflint on the file if available using TfLinter
-func (v *TerraformValidator) runTflint(filePath string) []string {
-	ctx, cancel := context.WithTimeout(context.Background(), terraformTimeout)
+func (v *TerraformValidator) runTflint(ctx context.Context, filePath string) []string {
+	lintCtx, cancel := context.WithTimeout(ctx, terraformTimeout)
 	defer cancel()
 
-	result := v.linter.Lint(ctx, filePath)
+	result := v.linter.Lint(lintCtx, filePath)
 
 	if result.Success {
 		return nil

@@ -42,10 +42,10 @@ func NewMarkdownValidator(linter linters.MarkdownLinter, log logger.Logger) *Mar
 }
 
 // Validate checks Markdown formatting rules
-func (v *MarkdownValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *MarkdownValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 
-	content, err := v.getContent(ctx)
+	content, err := v.getContent(hookCtx)
 	if err != nil {
 		log.Debug("skipping markdown validation", "error", err)
 		return validator.Pass()
@@ -55,7 +55,7 @@ func (v *MarkdownValidator) Validate(ctx *hook.Context) *validator.Result {
 		return validator.Pass()
 	}
 
-	lintCtx, cancel := context.WithTimeout(context.Background(), markdownTimeout)
+	lintCtx, cancel := context.WithTimeout(ctx, markdownTimeout)
 	defer cancel()
 
 	result := v.linter.Lint(lintCtx, content)

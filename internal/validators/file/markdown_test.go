@@ -1,6 +1,7 @@
 package file_test
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -40,7 +41,7 @@ var _ = Describe("MarkdownValidator", func() {
 		Context("with valid markdown", func() {
 			It("passes for empty content", func() {
 				ctx.ToolInput.Content = ""
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -59,7 +60,7 @@ code here
 More text.
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -69,7 +70,7 @@ More text.
 - Item 3
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -79,7 +80,7 @@ More text.
 - Feature 2
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -89,7 +90,7 @@ More text.
 ### Section
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -99,7 +100,7 @@ More text.
 Text
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 		})
@@ -111,7 +112,7 @@ Text
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -127,7 +128,7 @@ code
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.Message).To(BeEmpty())
 			})
@@ -140,7 +141,7 @@ code
 1. still not a list
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.Message).To(BeEmpty())
 			})
@@ -157,7 +158,7 @@ More text
 code2
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -173,7 +174,7 @@ code2
 - List item
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -188,7 +189,7 @@ code2
 - List item
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.Message).To(BeEmpty())
 			})
@@ -204,7 +205,7 @@ Text
 1. Ordered item
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -219,7 +220,7 @@ Text
   - Indented item
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -233,7 +234,7 @@ Text
 - Item 3
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.Message).To(BeEmpty())
 			})
@@ -245,7 +246,7 @@ Text
 Text immediately after
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -260,7 +261,7 @@ Text immediately after
 Text after empty line
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.Message).To(BeEmpty())
 			})
@@ -274,7 +275,7 @@ Text
 Text
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -295,13 +296,13 @@ Text
 				ctx.ToolName = hook.Edit
 				ctx.ToolInput.FilePath = "/path/to/file.md"
 				ctx.ToolInput.Content = ""
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
 			It("skips validation when no content available", func() {
 				ctx.ToolInput.Content = ""
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -309,7 +310,7 @@ Text
 				longLine := strings.Repeat("x", 100)
 				content := longLine + "\n- List item\n"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(
@@ -325,7 +326,7 @@ code
 ` + "```" + `
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.Message).To(BeEmpty())
 			})
@@ -340,7 +341,7 @@ Immediate text
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -382,7 +383,7 @@ npm install
 Done!
 `
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 				Expect(result.Message).To(BeEmpty())
 			})
@@ -396,7 +397,7 @@ Done!
  code
  ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -415,7 +416,7 @@ Done!
    code
    ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -426,7 +427,7 @@ Done!
  code
  ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(
@@ -441,7 +442,7 @@ Done!
   code
   ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -452,7 +453,7 @@ Done!
   code
   ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -466,7 +467,7 @@ Done!
      code
      ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -477,7 +478,7 @@ Done!
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -487,7 +488,7 @@ code
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				// Should warn about missing empty line before code block, but NOT about indentation
 				Expect(result.Passed).To(BeFalse())
 				Expect(
@@ -506,7 +507,7 @@ code
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(result.ShouldBlock).To(BeTrue())
 				Expect(result.Message).To(Equal("Markdown formatting errors"))
@@ -522,7 +523,7 @@ code
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeTrue())
 			})
 
@@ -535,7 +536,7 @@ code
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],
@@ -550,7 +551,7 @@ code
 code
 ` + "```"
 				ctx.ToolInput.Content = content
-				result := v.Validate(ctx)
+				result := v.Validate(context.Background(), ctx)
 				Expect(result.Passed).To(BeFalse())
 				Expect(
 					result.Details["errors"],

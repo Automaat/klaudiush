@@ -18,7 +18,7 @@ type PRMarkdownValidationResult struct {
 }
 
 // ValidatePRMarkdown runs markdownlint on the PR body content
-func ValidatePRMarkdown(body string) PRMarkdownValidationResult {
+func ValidatePRMarkdown(ctx context.Context, body string) PRMarkdownValidationResult {
 	result := PRMarkdownValidationResult{
 		Errors: []string{},
 	}
@@ -35,11 +35,11 @@ func ValidatePRMarkdown(body string) PRMarkdownValidationResult {
 	}
 
 	// Run markdownlint with stdin input
-	ctx, cancel := context.WithTimeout(context.Background(), markdownlintTimeout)
+	lintCtx, cancel := context.WithTimeout(ctx, markdownlintTimeout)
 	defer cancel()
 
 	runner := execpkg.NewCommandRunner(markdownlintTimeout)
-	cmdResult := runner.RunWithStdin(ctx, strings.NewReader(body), "markdownlint", "--stdin")
+	cmdResult := runner.RunWithStdin(lintCtx, strings.NewReader(body), "markdownlint", "--stdin")
 
 	// Parse markdownlint output
 	output := cmdResult.Stdout + cmdResult.Stderr

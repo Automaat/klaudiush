@@ -76,17 +76,17 @@ func NewWorkflowValidator(linter linters.ActionLinter, log logger.Logger) *Workf
 }
 
 // Validate checks GitHub Actions workflow file for digest pinning and runs actionlint
-func (v *WorkflowValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *WorkflowValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 
 	// Check if this is a workflow file
-	filePath := ctx.GetFilePath()
+	filePath := hookCtx.GetFilePath()
 	if !v.isWorkflowFile(filePath) {
 		log.Debug("not a workflow file, skipping", "path", filePath)
 		return validator.Pass()
 	}
 
-	content, err := v.getContent(ctx)
+	content, err := v.getContent(hookCtx)
 	if err != nil {
 		log.Debug("skipping workflow validation", "error", err)
 		return validator.Pass()
@@ -103,13 +103,13 @@ func (v *WorkflowValidator) Validate(ctx *hook.Context) *validator.Result {
 	// Parse workflow and validate digest pinning
 	actions := v.parseWorkflow(content)
 	for _, action := range actions {
-		errs, warns := v.validateAction(action)
+		errs, warns := v.validateAction(ctx, action)
 		allErrors = append(allErrors, errs...)
 		allWarnings = append(allWarnings, warns...)
 	}
 
 	// Run actionlint if available
-	if actionlintWarnings := v.runActionlint(content, filePath); len(actionlintWarnings) > 0 {
+	if actionlintWarnings := v.runActionlint(ctx, content, filePath); len(actionlintWarnings) > 0 {
 		allWarnings = append(allWarnings, actionlintWarnings...)
 	}
 
@@ -274,16 +274,22 @@ func (v *WorkflowValidator) parseWorkflow(content string) []actionUse {
 }
 
 // validateAction validates a single action use
-func (v *WorkflowValidator) validateAction(action actionUse) ([]string, []string) {
+func (v *WorkflowValidator) validateAction(
+	ctx context.Context,
+	action actionUse,
+) ([]string, []string) {
 	if action.IsDigest {
-		return v.validateDigestAction(action)
+		return v.validateDigestAction(ctx, action)
 	}
 
 	return v.validateTagAction(action)
 }
 
 // validateDigestAction validates digest-pinned actions
-func (v *WorkflowValidator) validateDigestAction(action actionUse) ([]string, []string) {
+func (v *WorkflowValidator) validateDigestAction(
+	ctx context.Context,
+	action actionUse,
+) ([]string, []string) {
 	var errs []string
 
 	var warnings []string
@@ -304,7 +310,7 @@ func (v *WorkflowValidator) validateDigestAction(action actionUse) ([]string, []
 	}
 
 	// Check if using latest version
-	latestVersion := v.getLatestVersion(action.ActionName)
+	latestVersion := v.getLatestVersion(ctx, action.ActionName)
 	if latestVersion != "" && !v.isVersionLatest(versionComment, latestVersion) {
 		warnings = append(warnings, fmt.Sprintf(
 			"Line %d: Action '%s' using %s, latest is %s",
@@ -377,19 +383,19 @@ func (v *WorkflowValidator) hasExplanationComment(action actionUse) bool {
 }
 
 // getLatestVersion queries GitHub API for the latest version of an action
-func (v *WorkflowValidator) getLatestVersion(actionName string) string {
+func (v *WorkflowValidator) getLatestVersion(ctx context.Context, actionName string) string {
 	// Check if gh CLI is available
 	if !v.toolChecker.IsAvailable("gh") {
 		v.Logger().Debug("gh CLI not found, skipping version check")
 		return ""
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), ghAPITimeout)
+	apiCtx, cancel := context.WithTimeout(ctx, ghAPITimeout)
 	defer cancel()
 
 	// Try releases first
 	result := v.runner.Run(
-		ctx,
+		apiCtx,
 		"gh",
 		"api",
 		fmt.Sprintf("repos/%s/releases/latest", actionName),
@@ -404,10 +410,10 @@ func (v *WorkflowValidator) getLatestVersion(actionName string) string {
 	}
 
 	// Fallback to tags
-	ctx, cancel = context.WithTimeout(context.Background(), ghAPITimeout)
+	apiCtx, cancel = context.WithTimeout(ctx, ghAPITimeout)
 	defer cancel()
 
-	result = v.runner.Run(ctx, "gh", "api", fmt.Sprintf("repos/%s/tags", actionName))
+	result = v.runner.Run(apiCtx, "gh", "api", fmt.Sprintf("repos/%s/tags", actionName))
 	if result.Err != nil {
 		return ""
 	}
@@ -440,11 +446,14 @@ func (v *WorkflowValidator) isVersionLatest(current, latest string) bool {
 }
 
 // runActionlint runs actionlint on the workflow content using ActionLinter
-func (v *WorkflowValidator) runActionlint(content, originalPath string) []string {
-	ctx, cancel := context.WithTimeout(context.Background(), workflowTimeout)
+func (v *WorkflowValidator) runActionlint(
+	ctx context.Context,
+	content, originalPath string,
+) []string {
+	lintCtx, cancel := context.WithTimeout(ctx, workflowTimeout)
 	defer cancel()
 
-	result := v.linter.Lint(ctx, content, originalPath)
+	result := v.linter.Lint(lintCtx, content, originalPath)
 
 	if result.Success {
 		return nil

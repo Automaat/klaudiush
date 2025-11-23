@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -55,13 +56,13 @@ var (
 )
 
 // Validate validates git branch names.
-func (v *BranchValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *BranchValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 	log.Debug("validating git branch command")
 
 	bashParser := parser.NewBashParser()
 
-	parseResult, err := bashParser.Parse(ctx.ToolInput.Command)
+	parseResult, err := bashParser.Parse(hookCtx.ToolInput.Command)
 	if err != nil {
 		log.Error("failed to parse command", "error", err)
 		return validator.Warn(fmt.Sprintf("Failed to parse command: %v", err))

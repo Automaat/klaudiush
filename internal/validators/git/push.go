@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"sort"
 	"strings"
 
@@ -39,10 +40,10 @@ func (v *PushValidator) Name() string {
 }
 
 // Validate validates git push commands
-func (v *PushValidator) Validate(ctx *hook.Context) *validator.Result {
+func (v *PushValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
 
-	command := ctx.GetCommand()
+	command := hookCtx.GetCommand()
 	if command == "" {
 		return validator.Pass()
 	}

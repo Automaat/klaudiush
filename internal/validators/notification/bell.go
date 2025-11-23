@@ -2,6 +2,7 @@
 package notification
 
 import (
+	"context"
 	"os"
 
 	"github.com/smykla-labs/claude-hooks/internal/validator"
@@ -22,11 +23,11 @@ func NewBellValidator(log logger.Logger) *BellValidator {
 }
 
 // Validate sends a bell character to /dev/tty if the notification type is "bell".
-func (v *BellValidator) Validate(ctx *hook.Context) *validator.Result {
-	v.Logger().Debug("validating notification", "notification_type", ctx.NotificationType)
+func (v *BellValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
+	v.Logger().Debug("validating notification", "notification_type", hookCtx.NotificationType)
 
 	// Only handle bell notifications
-	if ctx.NotificationType != "bell" {
+	if hookCtx.NotificationType != "bell" {
 		return validator.Pass()
 	}
 

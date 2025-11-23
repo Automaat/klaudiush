@@ -1,6 +1,8 @@
 package git_test
 
 import (
+	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -313,7 +315,7 @@ EOF
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -342,7 +344,7 @@ EOF
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeFalse())
 			Expect(result.Message).To(ContainSubstring("PR validation failed"))
 			Expect(result.Message).To(ContainSubstring("doesn't follow semantic commit format"))
@@ -373,7 +375,7 @@ EOF
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeFalse())
 			Expect(result.Message).To(ContainSubstring("Use 'ci(...)' not 'feat(ci)'"))
 		})
@@ -391,7 +393,7 @@ EOF
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeFalse())
 			Expect(result.Message).To(ContainSubstring("missing '## Implementation information'"))
 			Expect(result.Message).To(ContainSubstring("missing '## Supporting documentation'"))
@@ -422,7 +424,7 @@ EOF
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeFalse())
 			Expect(result.Message).To(ContainSubstring("targets 'release/1.0' but missing label"))
 		})
@@ -452,7 +454,7 @@ EOF
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -483,7 +485,7 @@ EOF
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(
 				result.Passed,
 			).To(BeFalse())
@@ -514,7 +516,7 @@ See docs/api.md"`,
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -540,7 +542,7 @@ See docs/api.md'`,
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 
@@ -553,7 +555,7 @@ See docs/api.md'`,
 				},
 			}
 
-			result := validator.Validate(ctx)
+			result := validator.Validate(context.Background(), ctx)
 			Expect(result.Passed).To(BeTrue())
 		})
 	})
