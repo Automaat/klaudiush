@@ -276,10 +276,10 @@ task build:prod
 
 ```bash
 # Debug mode (enabled by default)
-chook -T preToolUse --debug
+chook -T PreToolUse --debug
 
 # Trace mode (verbose logging)
-chook -T preToolUse --trace
+chook -T PreToolUse --trace
 ```
 
 ## Performance
