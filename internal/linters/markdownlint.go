@@ -2,10 +2,15 @@ package linters
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	execpkg "github.com/smykla-labs/claude-hooks/internal/exec"
+	"github.com/smykla-labs/claude-hooks/internal/validators"
 )
+
+// ErrMarkdownCustomRules indicates custom markdown rules found issues
+var ErrMarkdownCustomRules = errors.New("custom markdown rules validation failed")
 
 // MarkdownLinter validates Markdown files using markdownlint
 type MarkdownLinter interface {
@@ -26,23 +31,52 @@ func NewMarkdownLinter(runner execpkg.CommandRunner) *RealMarkdownLinter {
 	}
 }
 
-// Lint validates Markdown content
+// Lint validates Markdown content using markdownlint CLI and custom rules
 func (m *RealMarkdownLinter) Lint(ctx context.Context, content string) *LintResult {
-	// Check if markdownlint is available
-	if !m.toolChecker.IsAvailable("markdownlint") {
-		return &LintResult{
-			Success: true,
-			Err:     nil,
+	var combinedOutput strings.Builder
+
+	var combinedErr error
+
+	if m.toolChecker.IsAvailable("markdownlint") {
+		result, err := m.runner.RunWithStdin(
+			ctx,
+			strings.NewReader(content),
+			"markdownlint",
+			"--stdin",
+		)
+		if result.Stdout != "" || result.Stderr != "" {
+			combinedOutput.WriteString(result.Stdout)
+			combinedOutput.WriteString(result.Stderr)
+		}
+
+		if err != nil {
+			combinedErr = err
 		}
 	}
 
-	// Run markdownlint with stdin input
-	result, err := m.runner.RunWithStdin(ctx, strings.NewReader(content), "markdownlint", "--stdin")
+	// Run custom markdown analysis
+	analysisResult := validators.AnalyzeMarkdown(content)
+	if len(analysisResult.Warnings) > 0 {
+		if combinedOutput.Len() > 0 {
+			combinedOutput.WriteString("\n")
+		}
+
+		combinedOutput.WriteString("Custom rules:\n")
+		combinedOutput.WriteString(strings.Join(analysisResult.Warnings, "\n"))
+
+		// If custom rules found issues, mark as failed
+		if combinedErr == nil {
+			combinedErr = ErrMarkdownCustomRules
+		}
+	}
+
+	success := combinedErr == nil
+	rawOut := combinedOutput.String()
 
 	return &LintResult{
-		Success:  err == nil,
-		RawOut:   result.Stdout + result.Stderr,
-		Findings: []LintFinding{}, // TODO: Parse markdownlint output
-		Err:      err,
+		Success:  success,
+		RawOut:   rawOut,
+		Findings: []LintFinding{}, // TODO: Parse markdownlint output into structured findings
+		Err:      combinedErr,
 	}
 }

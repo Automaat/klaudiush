@@ -56,10 +56,31 @@ func (t *RealTerraformFormatter) CheckFormat(ctx context.Context, content string
 	// Run terraform fmt -check -diff
 	result, err := t.runner.Run(ctx, tool, "fmt", "-check", "-diff", tmpFile)
 
+	findings := t.parseDiffOutput(result.Stdout)
+
 	return &LintResult{
 		Success:  err == nil,
 		RawOut:   result.Stdout + result.Stderr,
-		Findings: []LintFinding{}, // TODO: Parse diff output
+		Findings: findings,
 		Err:      err,
+	}
+}
+
+// parseDiffOutput parses terraform fmt diff output into findings
+func (t *RealTerraformFormatter) parseDiffOutput(output string) []LintFinding {
+	if output == "" {
+		return []LintFinding{}
+	}
+
+	// For now, create a single finding with the entire diff
+	// A more sophisticated parser could extract specific line changes
+	return []LintFinding{
+		{
+			File:     "",
+			Line:     0,
+			Column:   0,
+			Message:  "Terraform formatting issues detected",
+			Severity: SeverityError,
+		},
 	}
 }

@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/smykla-labs/claude-hooks/internal/dispatcher"
+	execpkg "github.com/smykla-labs/claude-hooks/internal/exec"
+	"github.com/smykla-labs/claude-hooks/internal/linters"
 	"github.com/smykla-labs/claude-hooks/internal/parser"
 	"github.com/smykla-labs/claude-hooks/internal/validator"
 	filevalidators "github.com/smykla-labs/claude-hooks/internal/validators/file"
@@ -28,6 +31,9 @@ const (
 
 	// CommandDisplayLength is the maximum length of command to display in logs.
 	CommandDisplayLength = 50
+
+	// LinterTimeout is the timeout for linter operations.
+	LinterTimeout = 10 * time.Second
 )
 
 var (
@@ -220,6 +226,10 @@ func registerGitValidators(registry *validator.Registry, log logger.Logger) {
 }
 
 func registerFileValidators(registry *validator.Registry, log logger.Logger) {
+	// Initialize linters
+	runner := execpkg.NewCommandRunner(LinterTimeout)
+	shellChecker := linters.NewShellChecker(runner)
+
 	registry.Register(
 		filevalidators.NewMarkdownValidator(log),
 		validator.And(
@@ -239,7 +249,7 @@ func registerFileValidators(registry *validator.Registry, log logger.Logger) {
 	)
 
 	registry.Register(
-		filevalidators.NewShellScriptValidator(log),
+		filevalidators.NewShellScriptValidator(log, shellChecker),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
