@@ -43,7 +43,7 @@ tasks:
       - bin/{{.BINARY_NAME}}
 
   test:
-    desc: Run tests
+    desc: Run all tests
     cmds:
       - mise exec -- go test -v -race -cover ./...
 
@@ -56,6 +56,35 @@ tasks:
     desc: Run integration tests only
     cmds:
       - mise exec -- go test -v -race -cover -run Integration ./...
+
+  test:staged:
+    desc: Run tests for packages with staged files
+    vars:
+      STAGED_FILES:
+        sh: git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true
+      MODIFIED_FILES:
+        sh: git diff --name-only --diff-filter=ACM | grep '\.go$' || true
+      ALL_CHANGED_FILES:
+        sh: |
+          (git diff --cached --name-only --diff-filter=ACM; git diff --name-only --diff-filter=ACM) | \
+          grep '\.go$' | sort -u || true
+      CHANGED_PACKAGES:
+        sh: |
+          files=$( (git diff --cached --name-only --diff-filter=ACM; git diff --name-only --diff-filter=ACM) | \
+                  grep '\.go$' | sort -u || true )
+          if [ -z "$files" ]; then
+            echo ""
+          else
+            echo "$files" | xargs -n1 dirname | sort -u | sed 's|^|./|' | sed 's|$|/...|'
+          fi
+    cmds:
+      - |
+        if [ -n "{{.CHANGED_PACKAGES}}" ]; then
+          echo "Running tests for changed packages..."
+          mise exec -- go test -v -race -cover -short {{.CHANGED_PACKAGES}}
+        else
+          echo "No Go files changed, skipping tests"
+        fi
 
   lint:
     desc: Run linters on all files
@@ -107,7 +136,7 @@ tasks:
       - chmod +x {{.INSTALL_PATH}}
 
   install:hooks:
-    desc: Install git pre-commit hook
+    desc: Install git pre-commit and pre-push hooks
     cmds:
       - |
         if [ ! -d ".git" ]; then
@@ -118,6 +147,9 @@ tasks:
       - cp .githooks/pre-commit .git/hooks/pre-commit
       - chmod +x .git/hooks/pre-commit
       - echo "✓ Pre-commit hook installed to .git/hooks/pre-commit"
+      - cp .githooks/pre-push .git/hooks/pre-push
+      - chmod +x .git/hooks/pre-push
+      - echo "✓ Pre-push hook installed to .git/hooks/pre-push"
 
   clean:
     desc: Remove build artifacts
