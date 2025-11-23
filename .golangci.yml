@@ -4,8 +4,8 @@ linters:
   enable:
     # Core (enabled by default, explicitly listed)
     - errcheck       # Checks for unchecked errors
-    - govet          # Reports suspicious constructs
-    - staticcheck    # Static analysis checks
+    - govet          # Reports suspicious constructs (includes nilness check)
+    - staticcheck    # Static analysis checks (includes nil checks)
     - ineffassign    # Detects ineffectual assignments
     - unused         # Checks for unused constants, variables, functions and types
 
@@ -15,6 +15,9 @@ linters:
     - bodyclose      # HTTP response body is closed
     - rowserrcheck   # SQL rows.Err is checked
     - sqlclosecheck  # SQL Close methods are called
+
+    # Nil Safety & Pointer Issues
+    - nilnesserr     # Checks for returning wrong nil error
 
     # Code Quality
     - gocyclo        # Cyclomatic complexity
@@ -34,8 +37,13 @@ linters:
     - tparallel      # Detects inappropriate usage of t.Parallel()
     - nolintlint     # Reports ill-formed nolint directives
 
+    # Completeness Checks
+    - exhaustive     # Check exhaustiveness of enum switch statements
+    - gochecksumtype # Run exhaustiveness checks on Go "sum types"
+
     # Documentation
     - misspell       # Misspelled English words
+    - godox          # Detects FIXME, TODO and other comment keywords
 
     # Formatting & Style
     - whitespace     # Leading/trailing whitespace
@@ -97,6 +105,8 @@ linters:
           - unparam        # Unused params are fine in test helpers
           - wastedassign   # Test setup may have intentional waste
           - ginkgolinter   # May conflict with test structure
+          - godox          # TODO/FIXME comments are fine in tests
+          - exhaustive     # Test cases don't need exhaustive switches
 
       # Exclude dot-imports rule from test files (Ginkgo/Gomega convention)
       - path: '_test\.go'
@@ -129,6 +139,23 @@ linters:
 
     dupl:
       threshold: 100
+
+    godox:
+      keywords:
+        - FIXME
+        - HACK
+        - XXX
+
+    exhaustive:
+      default-signifies-exhaustive: true
+
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment  # Too strict - minor memory optimization
+
+    staticcheck:
+      checks: ["all"]
 
     revive:
       enable-all-rules: false
@@ -178,9 +205,6 @@ linters:
     errcheck:
       check-type-assertions: true
       check-blank: false
-
-    staticcheck:
-      checks: ["all"]
 
 formatters:
   enable:
