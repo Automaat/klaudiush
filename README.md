@@ -581,9 +581,9 @@ unset CLAUDE_HOOKS_USE_SDK_GIT
 The project supports two git operation implementations:
 
 - **SDK Implementation**: Native Go using `go-git/go-git/v6`
-  - 2-5.9M× faster for cached operations (IsInRepo, GetRepoRoot)
-  - 177× faster for GetCurrentBranch
-  - 1.5× faster for GetStagedFiles
+  - 2-5.9M× faster for cached operations (`IsInRepo`, `GetRepoRoot`)
+  - 177× faster for `GetCurrentBranch`
+  - 1.5× faster for `GetStagedFiles`
   - Enable with `CLAUDE_HOOKS_USE_SDK_GIT=true` or `CLAUDE_HOOKS_USE_SDK_GIT=1`
 
 - **CLI Implementation** (default): Executes git commands via shell
