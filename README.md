@@ -237,15 +237,95 @@ Warnings (`ShouldBlock=false`) print to stderr but allow operation (exit 0).
 
 ## Configuration
 
-### Environment Variables
+Klaudiush supports flexible configuration through multiple sources with a clear precedence hierarchy. All validators are fully configurable - you can enable/disable them, change severity levels, and customize individual rules.
 
-**Git SDK Configuration**:
+### Interactive Setup
 
-SDK is used by default for better performance. To use CLI-based operations:
+The quickest way to get started is using the interactive `init` command:
 
 ```bash
-export CLAUDE_HOOKS_USE_SDK_GIT=false
+# Initialize project configuration (interactive)
+./bin/klaudiush init
+
+# Initialize global configuration
+./bin/klaudiush init --global
+
+# Force overwrite existing configuration
+./bin/klaudiush init --force
 ```
+
+The `init` command guides you through configuration options with sensible defaults from your git config.
+
+### Configuration Files
+
+Klaudiush uses TOML configuration files:
+
+**Global Configuration**: `~/.klaudiush/config.toml`
+
+- Applies to all projects
+- Set your default preferences
+
+**Project Configuration**:
+
+- `.klaudiush/config.toml` (preferred)
+- `klaudiush.toml` (alternative)
+- Overrides global settings
+- Committed to repository for team standards
+
+**No Configuration Required**: All validators work with sensible defaults if no config files exist.
+
+### Configuration Hierarchy
+
+Configuration sources are merged with the following precedence (highest to lowest):
+
+1. **CLI Flags** - Runtime overrides (e.g., `--disable=commit,markdown`)
+2. **Environment Variables** - Shell-level config (e.g., `KLAUDIUSH_VALIDATORS_GIT_COMMIT_ENABLED=false`)
+3. **Project Config** - Repository-specific settings
+4. **Global Config** - User-wide defaults
+5. **Built-in Defaults** - Sensible defaults matching current behavior
+
+Settings from higher precedence sources override lower ones using deep merge (nested values are merged, not replaced entirely).
+
+### CLI Flags
+
+Override configuration at runtime:
+
+```bash
+# Use custom config file
+klaudiush --config=./my-config.toml --hook-type PreToolUse
+
+# Use custom global config
+klaudiush --global-config=~/.config/klaudiush.toml --hook-type PreToolUse
+
+# Disable specific validators
+klaudiush --disable=commit,markdown --hook-type PreToolUse
+
+# Debug mode (enabled by default)
+klaudiush --hook-type PreToolUse --debug
+
+# Trace mode (verbose logging)
+klaudiush --hook-type PreToolUse --trace
+```
+
+### Environment Variables
+
+All environment variables use the `KLAUDIUSH_` prefix:
+
+```bash
+# Disable specific validator
+export KLAUDIUSH_VALIDATORS_GIT_COMMIT_ENABLED=false
+
+# Change commit title max length
+export KLAUDIUSH_VALIDATORS_GIT_COMMIT_MESSAGE_TITLE_MAX_LENGTH=72
+
+# Disable Markdown validation
+export KLAUDIUSH_VALIDATORS_FILE_MARKDOWN_ENABLED=false
+
+# Git SDK configuration (default: true)
+export KLAUDIUSH_USE_SDK_GIT=false  # Use CLI instead of SDK
+```
+
+**Git SDK Performance**:
 
 The project supports two git operation implementations:
 
@@ -258,29 +338,77 @@ The project supports two git operation implementations:
 - **CLI Implementation**: Executes git commands via shell
   - Fully tested and backward compatible
   - Automatic fallback if SDK initialization fails
-  - Opt-in with `CLAUDE_HOOKS_USE_SDK_GIT=false` or `CLAUDE_HOOKS_USE_SDK_GIT=0`
+  - Opt-in with `KLAUDIUSH_USE_SDK_GIT=false` or `KLAUDIUSH_USE_SDK_GIT=0`
 
-### Build-time Configuration
+**Migration Note**: The old `CLAUDE_HOOKS_USE_SDK_GIT` environment variable is deprecated. Use `KLAUDIUSH_USE_SDK_GIT` instead.
 
-**Signoff Validation**:
+### Example Configurations
 
-```bash
-# Build with specific signoff requirement
-go build -ldflags="-X 'github.com/smykla-labs/klaudiush/internal/validators/git.ExpectedSignoff=Name <email>'" ./cmd/klaudiush
+Complete examples with all options are available in [`examples/config/`](examples/config/):
 
-# Or use task build:prod (uses git config)
-task build:prod
+- **[full.toml](examples/config/full.toml)** - All available options with defaults
+- **[minimal.toml](examples/config/minimal.toml)** - Quick setup to disable validators
+- **[project-override.toml](examples/config/project-override.toml)** - Project-specific customization
+
+**Quick Start Examples**:
+
+```toml
+# Disable commit message validation
+[validators.git.commit]
+enabled = false
+
+# Allow longer commit titles
+[validators.git.commit.message]
+title_max_length = 72
+
+# Disable conventional commit checking
+check_conventional_commits = false
+
+# Set custom signoff
+expected_signoff = "Your Name <your.email@example.com>"
+
+# Disable Markdown validation
+[validators.file.markdown]
+enabled = false
+
+# Change validator severity to warning
+[validators.file.shellscript]
+severity = "warning"
+
+# Increase timeout for Terraform operations
+[validators.file.terraform]
+timeout = "30s"
 ```
 
-### Runtime Flags
+See the [examples/config/README.md](examples/config/README.md) for complete documentation and more examples.
 
-```bash
-# Debug mode (enabled by default)
-klaudiush --hook-type PreToolUse --debug
+### What's Configurable
 
-# Trace mode (verbose logging)
-klaudiush --hook-type PreToolUse --trace
-```
+**All validators** support:
+
+- `enabled` - Enable/disable entire validator
+- `severity` - "error" (block) or "warning" (log only)
+
+**Git validators** support additional options:
+
+- Commit: required flags, staging checks, message format rules
+- PR: title format, changelog requirements, CI labels
+- Branch: protected branches, naming patterns
+- Add: blocked file patterns
+- Push: remote restrictions
+
+**File validators** support:
+
+- Timeouts for linter operations
+- Enable/disable specific linters
+- Context lines for error messages
+- Linter-specific rules (shellcheck, tflint, actionlint)
+
+**Notification validators** support:
+
+- Custom notification commands
+
+See [`examples/config/full.toml`](examples/config/full.toml) for the complete list of options.
 
 ## Performance
 
@@ -288,12 +416,6 @@ klaudiush --hook-type PreToolUse --trace
 - **Parser**: <100µs for typical commands
 - **Validators**: <50ms each (I/O dependent)
 - **Total**: <500ms for full validation chain
-
-## License
-
-MIT License - Copyright © 2025 Bart Smykla
-
-See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
@@ -308,3 +430,9 @@ See [LICENSE](LICENSE) for details.
 - **Issues**: https://github.com/smykla-labs/klaudiush/issues
 - **Discussions**: https://github.com/smykla-labs/klaudiush/discussions
 - **Logs**: `~/.claude/hooks/dispatcher.log`
+
+## License
+
+MIT License - Copyright © 2025 Bart Smykla
+
+See [LICENSE](LICENSE) for details.

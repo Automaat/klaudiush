@@ -281,15 +281,17 @@ Unified interface implemented by both CLI and SDK:
 ```go
 func NewGitRunner() GitRunner {
     // By default, uses SDK implementation for better performance
-    // Set CLAUDE_HOOKS_USE_SDK_GIT to "false" or "0" to use CLI
+    // Set KLAUDIUSH_USE_SDK_GIT to "false" or "0" to use CLI
     // Falls back to CLI if SDK initialization fails
 }
 ```
 
 **Environment Variable**:
 
-- Not set or `CLAUDE_HOOKS_USE_SDK_GIT=true`: Use SDK implementation (default)
-- `CLAUDE_HOOKS_USE_SDK_GIT=false` or `CLAUDE_HOOKS_USE_SDK_GIT=0`: Use CLI implementation
+- Not set or `KLAUDIUSH_USE_SDK_GIT=true`: Use SDK implementation (default)
+- `KLAUDIUSH_USE_SDK_GIT=false` or `KLAUDIUSH_USE_SDK_GIT=0`: Use CLI implementation
+
+**Migration Note**: The old `CLAUDE_HOOKS_USE_SDK_GIT` environment variable is deprecated. Use `KLAUDIUSH_USE_SDK_GIT` instead.
 
 **Adapter Pattern** (`internal/git/adapter.go`):
 
@@ -317,7 +319,124 @@ func NewGitRunner() GitRunner {
 - `MockGitRunner`: For testing validators with controlled git state
 - All 169 git validator tests pass with both implementations
 
-### Configuration Management
+### Configuration System
+
+The configuration system follows Clean Architecture with clear layer separation and supports flexible configuration through multiple sources.
+
+**Configuration Architecture**:
+
+```text
+Application Layer (main.go)
+         ↓
+   Factory Layer (builds validators)
+         ↓
+   Provider Layer (multi-source loading)
+         ↓
+Implementation Layer (loading, merging, validation)
+         ↓
+   Schema Layer (public types)
+```
+
+**Schema Layer** (`pkg/config/`):
+
+- `config.go`: Root Config struct
+- `validator.go`: Base ValidatorConfig
+- `git.go`: Git validator configs (CommitValidatorConfig, PRValidatorConfig, etc.)
+- `file.go`: File validator configs (MarkdownValidatorConfig, ShellScriptValidatorConfig, etc.)
+- `notification.go`: Notification validator configs (BellValidatorConfig)
+- `types.go`: Severity enum, Duration wrapper, shared types
+
+**Implementation Layer** (`internal/config/`):
+
+- `loader.go`: TOML file loading with strict validation
+- `validation.go`: Configuration semantic validation
+- `merger.go`: Deep merge logic for combining configs
+- `defaults.go`: Default value generation
+- `writer.go`: TOML file writing with secure permissions
+
+**Provider Layer** (`internal/config/provider/`):
+
+- `provider.go`: ConfigProvider interface and multi-source implementation
+- `sources.go`: File, environment variable, and CLI flag sources
+- `cache.go`: Configuration caching for performance
+
+**Factory Layer** (`internal/config/factory/`):
+
+- `factory.go`: ValidatorFactory interface
+- `git_factory.go`: Creates git validators from config
+- `file_factory.go`: Creates file validators from config
+- `notification_factory.go`: Creates notification validators from config
+- `registry.go`: RegistryBuilder creates complete validator registry from config
+
+**Configuration Sources and Precedence** (highest to lowest):
+
+1. **CLI Flags**: Runtime overrides (e.g., `--disable=commit,markdown`, `--config=path`)
+2. **Environment Variables**: `KLAUDIUSH_*` prefixed variables
+3. **Project Config**: `.klaudiush/config.toml` or `klaudiush.toml`
+4. **Global Config**: `~/.klaudiush/config.toml`
+5. **Defaults**: Built-in defaults matching current hardcoded behavior
+
+**CLI Flags for Configuration**:
+
+```bash
+# Custom config file paths
+klaudiush --config=./my-config.toml --hook-type PreToolUse
+klaudiush --global-config=~/.config/klaudiush.toml --hook-type PreToolUse
+
+# Disable specific validators
+klaudiush --disable=commit,markdown --hook-type PreToolUse
+```
+
+**Environment Variables**:
+
+All configuration can be overridden via environment variables using the `KLAUDIUSH_` prefix:
+
+```bash
+# Disable validator
+export KLAUDIUSH_VALIDATORS_GIT_COMMIT_ENABLED=false
+
+# Change commit title max length
+export KLAUDIUSH_VALIDATORS_GIT_COMMIT_MESSAGE_TITLE_MAX_LENGTH=72
+
+# Change severity to warning
+export KLAUDIUSH_VALIDATORS_FILE_MARKDOWN_SEVERITY=warning
+
+# Increase timeout
+export KLAUDIUSH_VALIDATORS_FILE_TERRAFORM_TIMEOUT=30s
+```
+
+**Configuration Files**:
+
+TOML format with deep merge support. Global config provides defaults, project config overrides specific values:
+
+```toml
+# Global config (~/.klaudiush/config.toml)
+[validators.git.commit.message]
+title_max_length = 50
+check_conventional_commits = true
+```
+
+```toml
+# Project config (.klaudiush/config.toml) - overrides specific values
+[validators.git.commit.message]
+title_max_length = 72  # Project allows longer titles
+```
+
+Result: `title_max_length=72`, `check_conventional_commits=true` (merged from both configs)
+
+**Interactive Setup** (`internal/initcmd/`):
+
+- `init.go`: Init command implementation
+- `options.go`: Extensible configuration options via `ConfigOption` interface
+- Current options: `SignoffOption`, `BellNotificationOption`
+- New options auto-included by adding to `GetDefaultOptions()`
+
+**Backward Compatibility**:
+
+- All validators accept `nil` config and use built-in defaults
+- No configuration files required - works out of the box
+- Existing tests pass without modification
+- Default behavior matches previous hardcoded behavior exactly
 
 **Config Writer** (`internal/config/writer.go`):
 
@@ -333,13 +452,6 @@ func NewGitRunner() GitRunner {
 - `Confirm()` for yes/no confirmations
 - `StdPrompter` implementation using stdin/stdout
 - Testable with custom reader/writer
-
-**Init Command Options** (`internal/initcmd/options.go`):
-
-- `ConfigOption` interface for extensible configuration
-- Each option implements: `Name()`, `Prompt()`, `IsAvailable()`
-- Current options: `SignoffOption`, `BellNotificationOption`
-- New options auto-included by adding to `GetDefaultOptions()`
 
 ### Logging
 
@@ -379,13 +491,31 @@ All validators log to `~/.claude/hooks/dispatcher.log`:
 
 ## Build-time Configuration
 
-**Signoff Validation**:
+**Signoff Validation** (Deprecated):
 
 ```bash
 go build -ldflags="-X 'github.com/smykla-labs/klaudiush/internal/validators/git.ExpectedSignoff=Name <email>'" ./cmd/klaudiush
 ```
 
-This enforces exact signoff match in commit messages when using `task build:prod`.
+**Note**: Build-time signoff validation via ldflags is deprecated. Use runtime configuration instead:
+
+```toml
+# In ~/.klaudiush/config.toml or .klaudiush/config.toml
+[validators.git.commit.message]
+expected_signoff = "Your Name <your.email@example.com>"
+```
+
+Or via environment variable:
+
+```bash
+export KLAUDIUSH_VALIDATORS_GIT_COMMIT_MESSAGE_EXPECTED_SIGNOFF="Your Name <your.email@example.com>"
+```
+
+Or use the interactive init command:
+
+```bash
+./bin/klaudiush init --global
+```
 
 ## Exit Codes
 
