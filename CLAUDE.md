@@ -14,6 +14,12 @@ Guidance for Claude Code (claude.ai/code) when working with this repository.
 ./bin/klaudiush init --global     # global config
 ./bin/klaudiush init --force      # overwrite existing
 
+# Doctor (diagnose setup and configuration)
+./bin/klaudiush doctor            # run all checks
+./bin/klaudiush doctor --verbose  # detailed output
+./bin/klaudiush doctor --fix      # auto-fix issues
+./bin/klaudiush doctor --category binary,hook  # filter by category
+
 # Build & Install
 task build                        # dev build
 task build:prod                   # prod build (validates signoff)
