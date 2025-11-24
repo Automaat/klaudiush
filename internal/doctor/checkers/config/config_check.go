@@ -24,7 +24,7 @@ func NewGlobalChecker() *GlobalChecker {
 
 // Name returns the name of the check
 func (*GlobalChecker) Name() string {
-	return "Global config valid"
+	return "Global config"
 }
 
 // Category returns the category of the check
@@ -37,7 +37,7 @@ func (c *GlobalChecker) Check(_ context.Context) doctor.CheckResult {
 	cfg, err := c.loader.LoadGlobal()
 	if err != nil {
 		if errors.Is(err, config.ErrConfigNotFound) {
-			return doctor.FailWarning("Global config valid", "Config file not found (optional)").
+			return doctor.FailWarning("Global config", "Not found (optional)").
 				WithDetails(
 					"Expected at: "+c.loader.GlobalConfigPath(),
 					"Create with: klaudiush init --global",
@@ -46,7 +46,7 @@ func (c *GlobalChecker) Check(_ context.Context) doctor.CheckResult {
 		}
 
 		if errors.Is(err, config.ErrInvalidTOML) {
-			return doctor.FailError("Global config valid", "Invalid TOML syntax").
+			return doctor.FailError("Global config", "Invalid TOML syntax").
 				WithDetails(
 					"File: "+c.loader.GlobalConfigPath(),
 					fmt.Sprintf("Error: %v", err),
@@ -54,7 +54,7 @@ func (c *GlobalChecker) Check(_ context.Context) doctor.CheckResult {
 		}
 
 		if errors.Is(err, config.ErrInvalidPermissions) {
-			return doctor.FailError("Global config valid", "Insecure file permissions").
+			return doctor.FailError("Global config", "Insecure file permissions").
 				WithDetails(
 					"File: "+c.loader.GlobalConfigPath(),
 					"Config file should not be world-writable",
@@ -63,20 +63,20 @@ func (c *GlobalChecker) Check(_ context.Context) doctor.CheckResult {
 				WithFixID("fix_config_permissions")
 		}
 
-		return doctor.FailError("Global config valid", fmt.Sprintf("Failed to load: %v", err))
+		return doctor.FailError("Global config", fmt.Sprintf("Failed to load: %v", err))
 	}
 
 	// Validate config semantics
 	validator := config.NewValidator()
 	if err := validator.Validate(cfg); err != nil {
-		return doctor.FailError("Global config valid", "Configuration validation failed").
+		return doctor.FailError("Global config", "Validation failed").
 			WithDetails(
 				"File: "+c.loader.GlobalConfigPath(),
 				fmt.Sprintf("Error: %v", err),
 			)
 	}
 
-	return doctor.Pass("Global config valid", "Valid")
+	return doctor.Pass("Global config", "Loaded and validated")
 }
 
 // ProjectChecker checks the validity of the project configuration
@@ -93,7 +93,7 @@ func NewProjectChecker() *ProjectChecker {
 
 // Name returns the name of the check
 func (*ProjectChecker) Name() string {
-	return "Project config valid"
+	return "Project config"
 }
 
 // Category returns the category of the check
@@ -106,23 +106,17 @@ func (c *ProjectChecker) Check(_ context.Context) doctor.CheckResult {
 	cfg, err := c.loader.LoadProject()
 	if err != nil {
 		if errors.Is(err, config.ErrConfigNotFound) {
-			paths := c.loader.ProjectConfigPaths()
-
-			return doctor.FailWarning("Project config valid", "Config file not found (optional)").
-				WithDetails(
-					fmt.Sprintf("Checked paths: %v", paths),
-					"Create with: klaudiush init",
-				).
-				WithFixID("create_project_config")
+			// Project config not found is just informational since global config is the primary
+			return doctor.Skip("Project config", "Not found (using global config)")
 		}
 
 		if errors.Is(err, config.ErrInvalidTOML) {
-			return doctor.FailError("Project config valid", "Invalid TOML syntax").
+			return doctor.FailError("Project config", "Invalid TOML syntax").
 				WithDetails(fmt.Sprintf("Error: %v", err))
 		}
 
 		if errors.Is(err, config.ErrInvalidPermissions) {
-			return doctor.FailError("Project config valid", "Insecure file permissions").
+			return doctor.FailError("Project config", "Insecure file permissions").
 				WithDetails(
 					"Config file should not be world-writable",
 					"Fix with: chmod 600 <config-file>",
@@ -130,17 +124,17 @@ func (c *ProjectChecker) Check(_ context.Context) doctor.CheckResult {
 				WithFixID("fix_config_permissions")
 		}
 
-		return doctor.FailError("Project config valid", fmt.Sprintf("Failed to load: %v", err))
+		return doctor.FailError("Project config", fmt.Sprintf("Failed to load: %v", err))
 	}
 
 	// Validate config semantics
 	validator := config.NewValidator()
 	if err := validator.Validate(cfg); err != nil {
-		return doctor.FailError("Project config valid", "Configuration validation failed").
+		return doctor.FailError("Project config", "Validation failed").
 			WithDetails(fmt.Sprintf("Error: %v", err))
 	}
 
-	return doctor.Pass("Project config valid", "Valid")
+	return doctor.Pass("Project config", "Loaded and validated")
 }
 
 // PermissionsChecker checks if config files have secure permissions
@@ -157,7 +151,7 @@ func NewPermissionsChecker() *PermissionsChecker {
 
 // Name returns the name of the check
 func (*PermissionsChecker) Name() string {
-	return "Config file permissions secure"
+	return "Config permissions"
 }
 
 // Category returns the category of the check
@@ -172,7 +166,7 @@ func (c *PermissionsChecker) Check(_ context.Context) doctor.CheckResult {
 	hasProject := c.loader.HasProjectConfig()
 
 	if !hasGlobal && !hasProject {
-		return doctor.Skip("Config file permissions secure", "No config files found")
+		return doctor.Skip("Config permissions", "No config files found")
 	}
 
 	// Try loading both - if they have permission issues, they'll fail
@@ -203,10 +197,10 @@ func (c *PermissionsChecker) Check(_ context.Context) doctor.CheckResult {
 	}
 
 	if hasPermissionError {
-		return doctor.FailError("Config file permissions secure", "Config files have insecure permissions").
+		return doctor.FailError("Config permissions", "Insecure file permissions detected").
 			WithDetails(append(details, "Fix with: chmod 600 <config-file>")...).
 			WithFixID("fix_config_permissions")
 	}
 
-	return doctor.Pass("Config file permissions secure", "Secure")
+	return doctor.Pass("Config permissions", "Files are secured")
 }

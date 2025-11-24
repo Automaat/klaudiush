@@ -46,6 +46,9 @@ type CheckResult struct {
 	// Name is the human-readable name of the check
 	Name string
 
+	// Category indicates the category this check belongs to
+	Category Category
+
 	// Severity indicates the severity level
 	Severity Severity
 

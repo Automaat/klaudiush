@@ -3,15 +3,27 @@ package reporters
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/smykla-labs/klaudiush/internal/doctor"
 )
 
-const (
-	// categoryParts is the number of parts when splitting by category separator
-	categoryParts = 2
-)
+// categoryOrder defines the display order for categories
+var categoryOrder = []doctor.Category{
+	doctor.CategoryBinary,
+	doctor.CategoryHook,
+	doctor.CategoryConfig,
+	doctor.CategoryTools,
+}
+
+// categoryNames maps categories to display names
+var categoryNames = map[doctor.Category]string{
+	doctor.CategoryBinary: "Binary",
+	doctor.CategoryHook:   "Hook Registration",
+	doctor.CategoryConfig: "Configuration",
+	doctor.CategoryTools:  "Optional Tools",
+}
 
 // SimpleReporter provides simple checklist-style output
 type SimpleReporter struct{}
@@ -30,7 +42,7 @@ func (*SimpleReporter) Report(results []doctor.CheckResult, verbose bool) {
 	fmt.Println("Checking klaudiush health...")
 	fmt.Println()
 
-	// Print results by category
+	// Print results by category in order
 	printCategories(categoryMap, verbose)
 
 	// Print summary
@@ -38,42 +50,56 @@ func (*SimpleReporter) Report(results []doctor.CheckResult, verbose bool) {
 }
 
 // groupByCategory groups results by their category
-func groupByCategory(results []doctor.CheckResult) map[string][]doctor.CheckResult {
-	categoryMap := make(map[string][]doctor.CheckResult)
+func groupByCategory(results []doctor.CheckResult) map[doctor.Category][]doctor.CheckResult {
+	categoryMap := make(map[doctor.Category][]doctor.CheckResult)
 
 	for _, result := range results {
-		category := extractCategory(result.Name)
-		categoryMap[category] = append(categoryMap[category], result)
+		categoryMap[result.Category] = append(categoryMap[result.Category], result)
 	}
 
 	return categoryMap
 }
 
-// extractCategory extracts the category from a check name
-func extractCategory(name string) string {
-	parts := strings.SplitN(name, ":", categoryParts)
-	if len(parts) == categoryParts {
-		return strings.TrimSpace(parts[0])
+// getCategoryName returns the display name for a category
+func getCategoryName(category doctor.Category) string {
+	if name, ok := categoryNames[category]; ok {
+		return name
 	}
 
-	return "Other"
-}
-
-// extractCheckName extracts just the check name without category prefix
-func extractCheckName(name string) string {
-	parts := strings.SplitN(name, ":", categoryParts)
-
-	if len(parts) == categoryParts {
-		return strings.TrimSpace(parts[1])
+	// Fallback: capitalize first letter manually for unknown categories
+	s := string(category)
+	if len(s) == 0 {
+		return "Other"
 	}
 
-	return name
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-// printCategories prints results grouped by category
-func printCategories(categoryMap map[string][]doctor.CheckResult, verbose bool) {
+// printCategories prints results grouped by category in defined order
+func printCategories(categoryMap map[doctor.Category][]doctor.CheckResult, verbose bool) {
+	// Print categories in defined order
+	for _, category := range categoryOrder {
+		categoryResults, ok := categoryMap[category]
+		if !ok || len(categoryResults) == 0 {
+			continue
+		}
+
+		fmt.Printf("%s:\n", getCategoryName(category))
+
+		for _, result := range categoryResults {
+			printResult(result, verbose)
+		}
+
+		fmt.Println()
+	}
+
+	// Print any unknown categories
 	for category, categoryResults := range categoryMap {
-		fmt.Printf("%s:\n", category)
+		if slices.Contains(categoryOrder, category) {
+			continue
+		}
+
+		fmt.Printf("%s:\n", getCategoryName(category))
 
 		for _, result := range categoryResults {
 			printResult(result, verbose)
@@ -86,10 +112,9 @@ func printCategories(categoryMap map[string][]doctor.CheckResult, verbose bool) 
 // printResult prints a single check result
 func printResult(result doctor.CheckResult, verbose bool) {
 	icon := getStatusIcon(result)
-	checkName := extractCheckName(result.Name)
 
 	// Print status line
-	fmt.Printf("  %s %s", icon, checkName)
+	fmt.Printf("  %s %s", icon, result.Name)
 
 	if result.Message != "" {
 		fmt.Printf(" - %s", result.Message)

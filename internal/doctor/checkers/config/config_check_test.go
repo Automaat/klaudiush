@@ -29,7 +29,7 @@ var _ = Describe("GlobalChecker", func() {
 
 	Describe("Name", func() {
 		It("should return the correct name", func() {
-			Expect(checker.Name()).To(Equal("Global config valid"))
+			Expect(checker.Name()).To(Equal("Global config"))
 		})
 	})
 
@@ -42,7 +42,7 @@ var _ = Describe("GlobalChecker", func() {
 	Describe("Check", func() {
 		It("should check global config validity", func() {
 			result := checker.Check(ctx)
-			Expect(result.Name).To(Equal("Global config valid"))
+			Expect(result.Name).To(Equal("Global config"))
 			// Result depends on whether global config exists and is valid
 			Expect(result.Status).To(BeElementOf(
 				doctor.StatusPass,
@@ -76,7 +76,7 @@ var _ = Describe("ProjectChecker", func() {
 
 	Describe("Name", func() {
 		It("should return the correct name", func() {
-			Expect(checker.Name()).To(Equal("Project config valid"))
+			Expect(checker.Name()).To(Equal("Project config"))
 		})
 	})
 
@@ -89,21 +89,22 @@ var _ = Describe("ProjectChecker", func() {
 	Describe("Check", func() {
 		It("should check project config validity", func() {
 			result := checker.Check(ctx)
-			Expect(result.Name).To(Equal("Project config valid"))
+			Expect(result.Name).To(Equal("Project config"))
 			// Result depends on whether project config exists and is valid
+			// Can be pass, fail, or skipped (if not found, it's optional)
 			Expect(result.Status).To(BeElementOf(
 				doctor.StatusPass,
 				doctor.StatusFail,
+				doctor.StatusSkipped,
 			))
 		})
 
 		Context("when config is missing", func() {
-			It("should return warning with fix ID", func() {
+			It("should return skipped status", func() {
 				result := checker.Check(ctx)
-				// If config doesn't exist, it should be a warning
-				if result.Status == doctor.StatusFail && result.Severity == doctor.SeverityWarning {
-					Expect(result.Message).To(ContainSubstring("not found"))
-					Expect(result.FixID).To(Equal("create_project_config"))
+				// If config doesn't exist, it should be skipped (optional)
+				if result.Status == doctor.StatusSkipped {
+					Expect(result.Message).To(ContainSubstring("Not found"))
 				}
 			})
 		})
@@ -123,7 +124,7 @@ var _ = Describe("PermissionsChecker", func() {
 
 	Describe("Name", func() {
 		It("should return the correct name", func() {
-			Expect(checker.Name()).To(Equal("Config file permissions secure"))
+			Expect(checker.Name()).To(Equal("Config permissions"))
 		})
 	})
 
@@ -136,7 +137,7 @@ var _ = Describe("PermissionsChecker", func() {
 	Describe("Check", func() {
 		It("should check config file permissions", func() {
 			result := checker.Check(ctx)
-			Expect(result.Name).To(Equal("Config file permissions secure"))
+			Expect(result.Name).To(Equal("Config permissions"))
 			// Result depends on whether config files exist and their permissions
 			Expect(result.Status).To(BeElementOf(
 				doctor.StatusPass,

@@ -12,7 +12,14 @@ import (
 	"github.com/smykla-labs/klaudiush/internal/doctor/settings"
 )
 
-const binaryName = "klaudiush"
+const (
+	binaryName = "klaudiush"
+
+	// Settings types
+	settingsTypeUser         = "user"
+	settingsTypeProject      = "project"
+	settingsTypeProjectLocal = "project-local"
+)
 
 // RegistrationChecker checks if the dispatcher is registered in Claude settings
 type RegistrationChecker struct {
@@ -24,7 +31,7 @@ type RegistrationChecker struct {
 func NewUserRegistrationChecker() *RegistrationChecker {
 	return &RegistrationChecker{
 		settingsPath: settings.GetUserSettingsPath(),
-		settingsType: "user",
+		settingsType: settingsTypeUser,
 	}
 }
 
@@ -32,7 +39,7 @@ func NewUserRegistrationChecker() *RegistrationChecker {
 func NewProjectRegistrationChecker() *RegistrationChecker {
 	return &RegistrationChecker{
 		settingsPath: settings.GetProjectSettingsPath(),
-		settingsType: "project",
+		settingsType: settingsTypeProject,
 	}
 }
 
@@ -40,7 +47,7 @@ func NewProjectRegistrationChecker() *RegistrationChecker {
 func NewProjectLocalRegistrationChecker() *RegistrationChecker {
 	return &RegistrationChecker{
 		settingsPath: settings.GetProjectLocalSettingsPath(),
-		settingsType: "project-local",
+		settingsType: settingsTypeProjectLocal,
 	}
 }
 
@@ -70,9 +77,9 @@ func (c *RegistrationChecker) Check(_ context.Context) doctor.CheckResult {
 	registered, err := parser.IsDispatcherRegistered(binaryPath)
 	if err != nil {
 		if errors.Is(err, settings.ErrSettingsNotFound) {
-			// For project settings, this is just a warning since it's optional
-			if c.settingsType == "project" || c.settingsType == "project-local" {
-				return doctor.FailWarning(
+			// For project settings, this is just informational since it's optional
+			if c.settingsType == settingsTypeProject || c.settingsType == settingsTypeProjectLocal {
+				return doctor.Skip(
 					fmt.Sprintf("Dispatcher registered in %s settings", c.settingsType),
 					"Settings file not found (optional)",
 				)
@@ -108,24 +115,24 @@ func (c *RegistrationChecker) Check(_ context.Context) doctor.CheckResult {
 	}
 
 	if !registered {
-		severity := doctor.SeverityError
-		if c.settingsType == "project" || c.settingsType == "project-local" {
-			severity = doctor.SeverityWarning
+		// For project settings, not registered is just informational
+		if c.settingsType == settingsTypeProject || c.settingsType == settingsTypeProjectLocal {
+			return doctor.Pass(
+				fmt.Sprintf("Dispatcher registered in %s settings", c.settingsType),
+				"Not registered (optional, using user settings)",
+			)
 		}
 
-		result := doctor.CheckResult{
-			Name:     fmt.Sprintf("Dispatcher registered in %s settings", c.settingsType),
-			Severity: severity,
-			Status:   doctor.StatusFail,
-			Message:  "Dispatcher not registered",
-			Details: []string{
-				"File: " + c.settingsPath,
+		// For user settings, not registered is an error
+		return doctor.FailError(
+			fmt.Sprintf("Dispatcher registered in %s settings", c.settingsType),
+			"Dispatcher not registered",
+		).
+			WithDetails(
+				"File: "+c.settingsPath,
 				"Register with: klaudiush doctor --fix",
-			},
-			FixID: "install_hook",
-		}
-
-		return result
+			).
+			WithFixID("install_hook")
 	}
 
 	return doctor.Pass(
@@ -144,7 +151,7 @@ type PreToolUseChecker struct {
 func NewUserPreToolUseChecker() *PreToolUseChecker {
 	return &PreToolUseChecker{
 		settingsPath: settings.GetUserSettingsPath(),
-		settingsType: "user",
+		settingsType: settingsTypeUser,
 	}
 }
 
@@ -152,7 +159,7 @@ func NewUserPreToolUseChecker() *PreToolUseChecker {
 func NewProjectPreToolUseChecker() *PreToolUseChecker {
 	return &PreToolUseChecker{
 		settingsPath: settings.GetProjectSettingsPath(),
-		settingsType: "project",
+		settingsType: settingsTypeProject,
 	}
 }
 
@@ -186,7 +193,16 @@ func (c *PreToolUseChecker) Check(_ context.Context) doctor.CheckResult {
 	}
 
 	if !hasHook {
-		return doctor.FailWarning(
+		// For project settings, not having hook is just informational
+		if c.settingsType == settingsTypeProject || c.settingsType == settingsTypeProjectLocal {
+			return doctor.Pass(
+				fmt.Sprintf("PreToolUse hook in %s settings", c.settingsType),
+				"Not configured (optional, using user settings)",
+			)
+		}
+
+		// For user settings, not having hook is an error
+		return doctor.FailError(
 			fmt.Sprintf("PreToolUse hook in %s settings", c.settingsType),
 			"PreToolUse hook not configured",
 		).

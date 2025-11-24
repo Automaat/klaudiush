@@ -76,7 +76,10 @@ func (*Registry) runCheckers(ctx context.Context, checkers []HealthChecker) []Ch
 		checker := checkers[i]
 
 		g.Go(func() error {
-			results[i] = checker.Check(gctx)
+			result := checker.Check(gctx)
+			result.Category = checker.Category()
+			results[i] = result
+
 			return nil
 		})
 	}
