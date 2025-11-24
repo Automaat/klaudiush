@@ -1,0 +1,94 @@
+// Package config provides configuration schema types for klaudiush validators.
+package config
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+	"time"
+)
+
+var (
+	// ErrInvalidSeverity is returned when an invalid severity value is provided.
+	ErrInvalidSeverity = errors.New("invalid severity")
+
+	// ErrNegativeDuration is returned when a negative duration is provided.
+	ErrNegativeDuration = errors.New("duration must be non-negative")
+)
+
+// Severity represents the severity level of a validation failure.
+type Severity string
+
+const (
+	// SeverityError indicates a validation failure that blocks the operation.
+	SeverityError Severity = "error"
+
+	// SeverityWarning indicates a validation failure that only warns without blocking.
+	SeverityWarning Severity = "warning"
+)
+
+// String returns the string representation of the severity.
+func (s Severity) String() string {
+	return string(s)
+}
+
+// IsValid checks if the severity is valid.
+func (s Severity) IsValid() bool {
+	return s == SeverityError || s == SeverityWarning
+}
+
+// ShouldBlock returns true if the severity should block the operation.
+func (s Severity) ShouldBlock() bool {
+	return s == SeverityError
+}
+
+// ParseSeverity parses a string into a Severity value.
+func ParseSeverity(s string) (Severity, error) {
+	severity := Severity(strings.ToLower(s))
+	if !severity.IsValid() {
+		return "",
+			fmt.Errorf(
+				"%w: %q, must be %q or %q",
+				ErrInvalidSeverity,
+				s,
+				SeverityError,
+				SeverityWarning,
+			)
+	}
+
+	return severity, nil
+}
+
+// Duration wraps time.Duration for TOML parsing.
+type Duration time.Duration
+
+// UnmarshalText implements encoding.TextUnmarshaler for TOML parsing.
+func (d *Duration) UnmarshalText(text []byte) error {
+	dur, err := time.ParseDuration(string(text))
+	if err != nil {
+		return fmt.Errorf("invalid duration: %w", err)
+	}
+
+	if dur < 0 {
+		return fmt.Errorf("%w: got %s", ErrNegativeDuration, dur)
+	}
+
+	*d = Duration(dur)
+
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler for TOML serialization.
+func (d Duration) MarshalText() ([]byte, error) {
+	return []byte(time.Duration(d).String()), nil
+}
+
+// String returns the string representation of the duration.
+func (d Duration) String() string {
+	return time.Duration(d).String()
+}
+
+// ToDuration converts Duration to time.Duration.
+func (d Duration) ToDuration() time.Duration {
+	return time.Duration(d)
+}
