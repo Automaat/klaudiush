@@ -27,8 +27,8 @@ type PRBodyValidationResult struct {
 	Warnings []string
 }
 
-// ValidatePRBody validates PR body structure, changelog rules, and language
-func ValidatePRBody(body, prType string) PRBodyValidationResult {
+// validatePRBody validates PR body structure, changelog rules, and language
+func validatePRBody(body, prType string, requireChangelog bool) PRBodyValidationResult {
 	result := PRBodyValidationResult{
 		Errors:   []string{},
 		Warnings: []string{},
@@ -47,7 +47,7 @@ func ValidatePRBody(body, prType string) PRBodyValidationResult {
 	checkRequiredSections(body, &result)
 
 	// Validate changelog handling
-	validateChangelog(body, prType, &result)
+	validateChangelog(body, prType, requireChangelog, &result)
 
 	// Check for simple, personal language
 	if formalWordsRegex.MatchString(body) {
@@ -88,10 +88,21 @@ func checkRequiredSections(body string, result *PRBodyValidationResult) {
 }
 
 // validateChangelog validates changelog rules based on PR type
-func validateChangelog(body, prType string, result *PRBodyValidationResult) {
+func validateChangelog(body, prType string, requireChangelog bool, result *PRBodyValidationResult) {
 	hasChangelogSkip := changelogSkipRegex.MatchString(body)
 	changelogMatches := changelogCustomRegex.FindStringSubmatch(body)
 	hasCustomChangelog := len(changelogMatches) > 1 && changelogMatches[1] != "skip"
+	hasAnyChangelog := hasChangelogSkip || hasCustomChangelog
+
+	// If changelog is required and not present, error
+	if requireChangelog && !hasAnyChangelog {
+		result.Errors = append(result.Errors,
+			"PR body missing required '> Changelog:' line",
+			"Add either '> Changelog: skip' or '> Changelog: type(scope): description'",
+		)
+
+		return
+	}
 
 	if prType != "" {
 		isNonUserFacing := IsNonUserFacingType(prType)
@@ -116,6 +127,13 @@ func validateChangelog(body, prType string, result *PRBodyValidationResult) {
 	// Validate custom changelog format if present
 	if hasCustomChangelog {
 		changelogEntry := changelogMatches[1]
+
+		// Build a regex from valid types (use default if prType is empty)
+		validTypesPattern := defaultValidTypesPattern
+		semanticCommitRegex := regexp.MustCompile(
+			fmt.Sprintf(`^(%s)(\([a-zA-Z0-9_\/-]+\))?!?: .+`, validTypesPattern),
+		)
+
 		if !semanticCommitRegex.MatchString(changelogEntry) {
 			result.Errors = append(result.Errors,
 				"Custom changelog entry doesn't follow semantic commit format",
@@ -187,4 +205,11 @@ func checkSupportingDocs(body string, result *PRBodyValidationResult) {
 			"Consider removing the section entirely if there's no supporting documentation",
 		)
 	}
+}
+
+// ValidatePRBody validates PR body with default configuration (exported for testing)
+//
+//nolint:revive // Exported for testing, intentionally similar to internal function
+func ValidatePRBody(body, prType string) PRBodyValidationResult {
+	return validatePRBody(body, prType, false)
 }

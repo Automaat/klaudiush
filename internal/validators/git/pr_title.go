@@ -8,16 +8,11 @@ import (
 )
 
 const (
-	validTypesPattern         = "build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test"
+	defaultValidTypesPattern  = "build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test"
 	nonUserFacingTypesPattern = "ci|test|chore|build|docs|style|refactor"
 )
 
-var (
-	semanticCommitRegex = regexp.MustCompile(
-		fmt.Sprintf(`^(%s)(\([a-zA-Z0-9_\/-]+\))?!?: .+`, validTypesPattern),
-	)
-	userFacingInfraRegex = regexp.MustCompile(`^(feat|fix)\((ci|test|docs|build)\):`)
-)
+var userFacingInfraRegex = regexp.MustCompile(`^(feat|fix)\((ci|test|docs|build)\):`)
 
 // PRTitleValidationResult contains the result of PR title validation
 type PRTitleValidationResult struct {
@@ -26,9 +21,14 @@ type PRTitleValidationResult struct {
 	Details      []string
 }
 
-// ValidatePRTitle validates that a PR title follows semantic commit format
+// validatePRTitle validates that a PR title follows semantic commit format (if enabled)
 // and doesn't misuse feat/fix with infrastructure scopes
-func ValidatePRTitle(title string) PRTitleValidationResult {
+func validatePRTitle(
+	title string,
+	maxLength int,
+	checkConventionalCommits bool,
+	validTypes []string,
+) PRTitleValidationResult {
 	if title == "" {
 		return PRTitleValidationResult{
 			Valid:        false,
@@ -36,43 +36,70 @@ func ValidatePRTitle(title string) PRTitleValidationResult {
 		}
 	}
 
-	// Check semantic commit format
-	if !semanticCommitRegex.MatchString(title) {
+	// Check title length
+	if len(title) > maxLength {
 		return PRTitleValidationResult{
-			Valid:        false,
-			ErrorMessage: "PR title doesn't follow semantic commit format",
+			Valid: false,
+			ErrorMessage: fmt.Sprintf(
+				"PR title exceeds maximum length of %d characters",
+				maxLength,
+			),
 			Details: []string{
-				fmt.Sprintf("Current: '%s'", title),
-				"Expected: type(scope): description",
-				"Valid types: build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test",
+				fmt.Sprintf("Current length: %d", len(title)),
+				fmt.Sprintf("Title: '%s'", title),
 			},
 		}
 	}
 
-	// Check for feat/fix misuse with infrastructure scopes
-	if matches := userFacingInfraRegex.FindStringSubmatch(title); matches != nil {
-		typeMatch := matches[1]  // feat or fix
-		scopeMatch := matches[2] // ci, test, docs, or build
+	// Check semantic commit format (if enabled)
+	if checkConventionalCommits {
+		validTypesPattern := strings.Join(validTypes, "|")
+		semanticCommitRegex := regexp.MustCompile(
+			fmt.Sprintf(`^(%s)(\([a-zA-Z0-9_\/-]+\))?!?: .+`, validTypesPattern),
+		)
 
-		return PRTitleValidationResult{
-			Valid: false,
-			ErrorMessage: fmt.Sprintf(
-				"Use '%s(...)' not '%s(%s)' for infrastructure changes",
-				scopeMatch,
-				typeMatch,
-				scopeMatch,
-			),
-			Details: []string{
-				"feat/fix should only be used for user-facing changes",
-			},
+		if !semanticCommitRegex.MatchString(title) {
+			return PRTitleValidationResult{
+				Valid:        false,
+				ErrorMessage: "PR title doesn't follow semantic commit format",
+				Details: []string{
+					fmt.Sprintf("Current: '%s'", title),
+					"Expected: type(scope): description",
+					"Valid types: " + strings.Join(validTypes, ", "),
+				},
+			}
+		}
+
+		// Check for feat/fix misuse with infrastructure scopes
+		if matches := userFacingInfraRegex.FindStringSubmatch(title); matches != nil {
+			typeMatch := matches[1]  // feat or fix
+			scopeMatch := matches[2] // ci, test, docs, or build
+
+			return PRTitleValidationResult{
+				Valid: false,
+				ErrorMessage: fmt.Sprintf(
+					"Use '%s(...)' not '%s(%s)' for infrastructure changes",
+					scopeMatch,
+					typeMatch,
+					scopeMatch,
+				),
+				Details: []string{
+					"feat/fix should only be used for user-facing changes",
+				},
+			}
 		}
 	}
 
 	return PRTitleValidationResult{Valid: true}
 }
 
-// ExtractPRType extracts the type from a semantic commit title (e.g., "feat", "fix", "ci")
-func ExtractPRType(title string) string {
+// extractPRType extracts the type from a semantic commit title (e.g., "feat", "fix", "ci")
+func extractPRType(title string, validTypes []string) string {
+	if len(validTypes) == 0 {
+		return ""
+	}
+
+	validTypesPattern := strings.Join(validTypes, "|")
 	typeRegex := regexp.MustCompile(fmt.Sprintf(`^(%s)`, validTypesPattern))
 
 	matches := typeRegex.FindStringSubmatch(title)
@@ -81,6 +108,20 @@ func ExtractPRType(title string) string {
 	}
 
 	return ""
+}
+
+// ValidatePRTitle validates a PR title with default configuration (exported for testing)
+//
+//nolint:revive // Exported for testing, intentionally similar to internal function
+func ValidatePRTitle(title string) PRTitleValidationResult {
+	return validatePRTitle(title, defaultPRTitleMaxLength, true, defaultValidTypes)
+}
+
+// ExtractPRType extracts the type with default valid types (exported for testing)
+//
+//nolint:revive // Exported for testing, intentionally similar to internal function
+func ExtractPRType(title string) string {
+	return extractPRType(title, defaultValidTypes)
 }
 
 // IsNonUserFacingType returns true if the type is non-user-facing

@@ -9,6 +9,7 @@ import (
 
 	"github.com/smykla-labs/klaudiush/internal/templates"
 	"github.com/smykla-labs/klaudiush/internal/validator"
+	"github.com/smykla-labs/klaudiush/pkg/config"
 	"github.com/smykla-labs/klaudiush/pkg/hook"
 	"github.com/smykla-labs/klaudiush/pkg/logger"
 	"github.com/smykla-labs/klaudiush/pkg/parser"
@@ -17,12 +18,14 @@ import (
 // BranchValidator validates git branch names.
 type BranchValidator struct {
 	validator.BaseValidator
+	config *config.BranchValidatorConfig
 }
 
 // NewBranchValidator creates a new BranchValidator.
-func NewBranchValidator(log logger.Logger) *BranchValidator {
+func NewBranchValidator(cfg *config.BranchValidatorConfig, log logger.Logger) *BranchValidator {
 	return &BranchValidator{
 		BaseValidator: *validator.NewBaseValidator("validate-branch-name", log),
+		config:        cfg,
 	}
 }
 
@@ -32,27 +35,13 @@ const (
 )
 
 var (
-	// Valid branch name pattern: type/description (e.g., feat/add-feature, fix/bug-123).
-	branchNamePattern = regexp.MustCompile(`^[a-z]+/[a-z0-9-]+$`)
+	// Default protected branches that should skip validation.
+	defaultProtectedBranches = []string{"main", "master"}
 
-	// Protected branches that should skip validation.
-	protectedBranches = map[string]bool{
-		"main":   true,
-		"master": true,
-	}
-
-	// Valid branch types.
-	validBranchTypes = map[string]bool{
-		"feat":     true,
-		"fix":      true,
-		"docs":     true,
-		"style":    true,
-		"refactor": true,
-		"test":     true,
-		"chore":    true,
-		"ci":       true,
-		"build":    true,
-		"perf":     true,
+	// Default valid branch types.
+	defaultValidBranchTypes = []string{
+		"feat", "fix", "docs", "style", "refactor",
+		"test", "chore", "ci", "build", "perf",
 	}
 
 	// Branch creation flags for git checkout.
@@ -64,6 +53,42 @@ var (
 	// Branch deletion flags for git branch.
 	branchDeleteFlags = []string{"-d", "-D", "--delete"}
 )
+
+// getProtectedBranches returns the list of protected branches
+func (v *BranchValidator) getProtectedBranches() []string {
+	if v.config != nil && len(v.config.ProtectedBranches) > 0 {
+		return v.config.ProtectedBranches
+	}
+
+	return defaultProtectedBranches
+}
+
+// getValidTypes returns the list of valid branch types
+func (v *BranchValidator) getValidTypes() []string {
+	if v.config != nil && len(v.config.ValidTypes) > 0 {
+		return v.config.ValidTypes
+	}
+
+	return defaultValidBranchTypes
+}
+
+// isRequireType returns whether type/description format is required
+func (v *BranchValidator) isRequireType() bool {
+	if v.config != nil && v.config.RequireType != nil {
+		return *v.config.RequireType
+	}
+
+	return true // default: required
+}
+
+// isAllowUppercase returns whether uppercase letters are allowed
+func (v *BranchValidator) isAllowUppercase() bool {
+	if v.config != nil && v.config.AllowUppercase != nil {
+		return *v.config.AllowUppercase
+	}
+
+	return false // default: not allowed
+}
 
 // Validate validates git branch names.
 func (v *BranchValidator) Validate(_ context.Context, hookCtx *hook.Context) *validator.Result {
@@ -231,14 +256,16 @@ func hasAnyFlag(gitCmd *parser.GitCommand, flags []string) bool {
 }
 
 // validateBranchName validates the branch name format (type/description).
-// Skips validation for protected branches (main, master).
+// Skips validation for protected branches.
 func (v *BranchValidator) validateBranchName(branchName string) *validator.Result {
-	if protectedBranches[branchName] {
+	protectedBranches := v.getProtectedBranches()
+	if slices.Contains(protectedBranches, branchName) {
 		v.Logger().Debug("skipping protected branch", "branch", branchName)
 		return validator.Pass()
 	}
 
-	if branchName != strings.ToLower(branchName) {
+	allowUppercase := v.isAllowUppercase()
+	if !allowUppercase && branchName != strings.ToLower(branchName) {
 		message := templates.MustExecute(
 			templates.BranchUppercaseTemplate,
 			templates.BranchUppercaseData{
@@ -250,45 +277,70 @@ func (v *BranchValidator) validateBranchName(branchName string) *validator.Resul
 		return validator.Fail(message)
 	}
 
-	if !branchNamePattern.MatchString(branchName) {
-		message := templates.MustExecute(
-			templates.BranchPatternTemplate,
-			templates.BranchPatternData{
-				BranchName: branchName,
-			},
-		)
-
-		return validator.Fail(message)
-	}
-
-	parts := strings.SplitN(branchName, "/", minBranchParts)
-	if len(parts) != minBranchParts {
-		message := templates.MustExecute(
-			templates.BranchMissingPartsTemplate,
-			templates.BranchMissingPartsData{
-				BranchName: branchName,
-			},
-		)
-
-		return validator.Fail(message)
-	}
-
-	branchType := parts[0]
-	if !validBranchTypes[branchType] {
-		validTypes := make([]string, 0, len(validBranchTypes))
-		for t := range validBranchTypes {
-			validTypes = append(validTypes, t)
+	requireType := v.isRequireType()
+	//nolint:nestif // Acceptable complexity for branch name validation
+	if requireType {
+		// Build pattern based on allow uppercase config
+		var branchNamePattern *regexp.Regexp
+		if allowUppercase {
+			branchNamePattern = regexp.MustCompile(`^[a-zA-Z]+/[a-zA-Z0-9-]+$`)
+		} else {
+			branchNamePattern = regexp.MustCompile(`^[a-z]+/[a-z0-9-]+$`)
 		}
 
-		message := templates.MustExecute(
-			templates.BranchInvalidTypeTemplate,
-			templates.BranchInvalidTypeData{
-				BranchType:    branchType,
-				ValidTypesStr: strings.Join(validTypes, ", "),
-			},
-		)
+		if !branchNamePattern.MatchString(branchName) {
+			message := templates.MustExecute(
+				templates.BranchPatternTemplate,
+				templates.BranchPatternData{
+					BranchName: branchName,
+				},
+			)
 
-		return validator.Fail(message)
+			return validator.Fail(message)
+		}
+
+		parts := strings.SplitN(branchName, "/", minBranchParts)
+		if len(parts) != minBranchParts {
+			message := templates.MustExecute(
+				templates.BranchMissingPartsTemplate,
+				templates.BranchMissingPartsData{
+					BranchName: branchName,
+				},
+			)
+
+			return validator.Fail(message)
+		}
+
+		branchType := parts[0]
+		validTypes := v.getValidTypes()
+
+		// Convert to lowercase for comparison if uppercase is allowed
+		compareType := branchType
+		if allowUppercase {
+			compareType = strings.ToLower(branchType)
+		}
+
+		// Check if type is valid
+		typeValid := false
+
+		for _, t := range validTypes {
+			if compareType == strings.ToLower(t) {
+				typeValid = true
+				break
+			}
+		}
+
+		if !typeValid {
+			message := templates.MustExecute(
+				templates.BranchInvalidTypeTemplate,
+				templates.BranchInvalidTypeData{
+					BranchType:    branchType,
+					ValidTypesStr: strings.Join(validTypes, ", "),
+				},
+			)
+
+			return validator.Fail(message)
+		}
 	}
 
 	return validator.Pass()

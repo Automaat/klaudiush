@@ -200,7 +200,7 @@ func registerGitValidators(registry *validator.Registry, log logger.Logger) {
 	)
 
 	registry.Register(
-		gitvalidators.NewPRValidator(log),
+		gitvalidators.NewPRValidator(nil, log),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),
@@ -209,7 +209,7 @@ func registerGitValidators(registry *validator.Registry, log logger.Logger) {
 	)
 
 	registry.Register(
-		gitvalidators.NewBranchValidator(log),
+		gitvalidators.NewBranchValidator(nil, log),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),
@@ -241,7 +241,7 @@ func registerFileValidators(registry *validator.Registry, log logger.Logger) {
 	githubClient := githubpkg.NewClient()
 
 	registry.Register(
-		filevalidators.NewMarkdownValidator(markdownLinter, log),
+		filevalidators.NewMarkdownValidator(nil, markdownLinter, log),
 		validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),

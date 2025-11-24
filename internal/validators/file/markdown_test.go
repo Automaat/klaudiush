@@ -24,7 +24,7 @@ var _ = Describe("MarkdownValidator", func() {
 	BeforeEach(func() {
 		runner := execpkg.NewCommandRunner(10 * time.Second)
 		linter := linters.NewMarkdownLinter(runner)
-		v = file.NewMarkdownValidator(linter, logger.NewNoOpLogger())
+		v = file.NewMarkdownValidator(nil, linter, logger.NewNoOpLogger())
 		ctx = &hook.Context{
 			EventType: hook.PreToolUse,
 			ToolName:  hook.Write,

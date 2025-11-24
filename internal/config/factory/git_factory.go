@@ -10,6 +10,7 @@ import (
 
 // GitValidatorFactory creates git validators from configuration.
 type GitValidatorFactory struct {
+	cfg *config.Config
 	log logger.Logger
 }
 
@@ -20,38 +21,42 @@ func NewGitValidatorFactory(log logger.Logger) *GitValidatorFactory {
 
 // CreateValidators creates all git validators based on configuration.
 func (f *GitValidatorFactory) CreateValidators(cfg *config.Config) []ValidatorWithPredicate {
+	f.cfg = cfg // Store config for use in create methods
+
 	var validators []ValidatorWithPredicate
 
 	if cfg.Validators.Git.Add != nil && cfg.Validators.Git.Add.IsEnabled() {
-		validators = append(validators, f.createAddValidator())
+		validators = append(validators, f.createAddValidator(cfg.Validators.Git.Add))
 	}
 
 	if cfg.Validators.Git.NoVerify != nil && cfg.Validators.Git.NoVerify.IsEnabled() {
-		validators = append(validators, f.createNoVerifyValidator())
+		validators = append(validators, f.createNoVerifyValidator(cfg.Validators.Git.NoVerify))
 	}
 
 	if cfg.Validators.Git.Commit != nil && cfg.Validators.Git.Commit.IsEnabled() {
-		validators = append(validators, f.createCommitValidator())
+		validators = append(validators, f.createCommitValidator(cfg.Validators.Git.Commit))
 	}
 
 	if cfg.Validators.Git.Push != nil && cfg.Validators.Git.Push.IsEnabled() {
-		validators = append(validators, f.createPushValidator())
+		validators = append(validators, f.createPushValidator(cfg.Validators.Git.Push))
 	}
 
 	if cfg.Validators.Git.PR != nil && cfg.Validators.Git.PR.IsEnabled() {
-		validators = append(validators, f.createPRValidator())
+		validators = append(validators, f.createPRValidator(cfg.Validators.Git.PR))
 	}
 
 	if cfg.Validators.Git.Branch != nil && cfg.Validators.Git.Branch.IsEnabled() {
-		validators = append(validators, f.createBranchValidator())
+		validators = append(validators, f.createBranchValidator(cfg.Validators.Git.Branch))
 	}
 
 	return validators
 }
 
-func (f *GitValidatorFactory) createAddValidator() ValidatorWithPredicate {
+func (f *GitValidatorFactory) createAddValidator(
+	cfg *config.AddValidatorConfig,
+) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewAddValidator(f.log, nil, nil),
+		Validator: gitvalidators.NewAddValidator(f.log, nil, cfg),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),
@@ -60,9 +65,11 @@ func (f *GitValidatorFactory) createAddValidator() ValidatorWithPredicate {
 	}
 }
 
-func (f *GitValidatorFactory) createNoVerifyValidator() ValidatorWithPredicate {
+func (f *GitValidatorFactory) createNoVerifyValidator(
+	cfg *config.NoVerifyValidatorConfig,
+) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewNoVerifyValidator(f.log, nil),
+		Validator: gitvalidators.NewNoVerifyValidator(f.log, cfg),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),
@@ -71,9 +78,11 @@ func (f *GitValidatorFactory) createNoVerifyValidator() ValidatorWithPredicate {
 	}
 }
 
-func (f *GitValidatorFactory) createCommitValidator() ValidatorWithPredicate {
+func (f *GitValidatorFactory) createCommitValidator(
+	cfg *config.CommitValidatorConfig,
+) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewCommitValidator(f.log, nil, nil),
+		Validator: gitvalidators.NewCommitValidator(f.log, nil, cfg),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),
@@ -82,9 +91,11 @@ func (f *GitValidatorFactory) createCommitValidator() ValidatorWithPredicate {
 	}
 }
 
-func (f *GitValidatorFactory) createPushValidator() ValidatorWithPredicate {
+func (f *GitValidatorFactory) createPushValidator(
+	cfg *config.PushValidatorConfig,
+) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewPushValidator(f.log, nil, nil),
+		Validator: gitvalidators.NewPushValidator(f.log, nil, cfg),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),
@@ -93,9 +104,11 @@ func (f *GitValidatorFactory) createPushValidator() ValidatorWithPredicate {
 	}
 }
 
-func (f *GitValidatorFactory) createPRValidator() ValidatorWithPredicate {
+func (f *GitValidatorFactory) createPRValidator(
+	cfg *config.PRValidatorConfig,
+) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewPRValidator(f.log),
+		Validator: gitvalidators.NewPRValidator(cfg, f.log),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),
@@ -104,9 +117,11 @@ func (f *GitValidatorFactory) createPRValidator() ValidatorWithPredicate {
 	}
 }
 
-func (f *GitValidatorFactory) createBranchValidator() ValidatorWithPredicate {
+func (f *GitValidatorFactory) createBranchValidator(
+	cfg *config.BranchValidatorConfig,
+) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewBranchValidator(f.log),
+		Validator: gitvalidators.NewBranchValidator(cfg, f.log),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.PreToolUse),
 			validator.ToolTypeIs(hook.Bash),

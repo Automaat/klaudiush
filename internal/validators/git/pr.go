@@ -9,6 +9,7 @@ import (
 
 	"github.com/smykla-labs/klaudiush/internal/validator"
 	"github.com/smykla-labs/klaudiush/internal/validators"
+	"github.com/smykla-labs/klaudiush/pkg/config"
 	"github.com/smykla-labs/klaudiush/pkg/hook"
 	"github.com/smykla-labs/klaudiush/pkg/logger"
 	"github.com/smykla-labs/klaudiush/pkg/parser"
@@ -34,16 +35,77 @@ var (
 	bodySingleRegex  = regexp.MustCompile(`--body\s+'([^']+)'`)
 )
 
+const (
+	defaultPRTitleMaxLength = 50
+)
+
 // PRValidator validates gh pr create commands
 type PRValidator struct {
 	validator.BaseValidator
+	config *config.PRValidatorConfig
 }
 
 // NewPRValidator creates a new PRValidator instance
-func NewPRValidator(log logger.Logger) *PRValidator {
+func NewPRValidator(cfg *config.PRValidatorConfig, log logger.Logger) *PRValidator {
 	return &PRValidator{
 		BaseValidator: *validator.NewBaseValidator("validate-pr", log),
+		config:        cfg,
 	}
+}
+
+// getTitleMaxLength returns the maximum allowed length for PR titles
+func (v *PRValidator) getTitleMaxLength() int {
+	if v.config != nil && v.config.TitleMaxLength != nil {
+		return *v.config.TitleMaxLength
+	}
+
+	return defaultPRTitleMaxLength
+}
+
+// isTitleConventionalCommitsEnabled returns whether conventional commit format is required for titles
+func (v *PRValidator) isTitleConventionalCommitsEnabled() bool {
+	if v.config != nil && v.config.TitleConventionalCommits != nil {
+		return *v.config.TitleConventionalCommits
+	}
+
+	return true // default: enabled
+}
+
+// getValidTypes returns the list of valid commit types for PR titles
+func (v *PRValidator) getValidTypes() []string {
+	if v.config != nil && len(v.config.ValidTypes) > 0 {
+		return v.config.ValidTypes
+	}
+
+	// Default: same as commit message valid types
+	return defaultValidTypes
+}
+
+// isRequireChangelog returns whether a changelog line is required in PR body
+func (v *PRValidator) isRequireChangelog() bool {
+	if v.config != nil && v.config.RequireChangelog != nil {
+		return *v.config.RequireChangelog
+	}
+
+	return false // default: not required (PR title used if omitted)
+}
+
+// isCheckCILabelsEnabled returns whether CI label suggestions are enabled
+func (v *PRValidator) isCheckCILabelsEnabled() bool {
+	if v.config != nil && v.config.CheckCILabels != nil {
+		return *v.config.CheckCILabels
+	}
+
+	return true // default: enabled
+}
+
+// isRequireBody returns whether PR body is required
+func (v *PRValidator) isRequireBody() bool {
+	if v.config != nil && v.config.RequireBody != nil {
+		return *v.config.RequireBody
+	}
+
+	return true // default: required
 }
 
 // Validate checks gh pr create command for proper PR structure
@@ -169,13 +231,14 @@ func (v *PRValidator) validatePR(ctx context.Context, data PRData) *validator.Re
 	var allWarnings []string
 
 	// 1. Validate PR title
-	validatePRTitleData(data.Title, &allErrors, &allWarnings)
+	v.validatePRTitleData(data.Title, &allErrors, &allWarnings)
 
 	// 2. Extract PR type for body validation
-	prType := ExtractPRType(data.Title)
+	validTypes := v.getValidTypes()
+	prType := extractPRType(data.Title, validTypes)
 
 	// 3. Validate PR body
-	validatePRBodyData(data.Body, prType, &allErrors, &allWarnings)
+	v.validatePRBodyData(data.Body, prType, &allErrors, &allWarnings)
 
 	// 4. Validate markdown formatting
 	if data.Body != "" {
@@ -191,8 +254,8 @@ func (v *PRValidator) validatePR(ctx context.Context, data PRData) *validator.Re
 	// 5. Validate base branch labels
 	validateBaseBranchLabels(data, &allErrors)
 
-	// 6. Validate CI label heuristics
-	if data.Title != "" && data.Body != "" {
+	// 6. Validate CI label heuristics (if enabled)
+	if v.isCheckCILabelsEnabled() && data.Title != "" && data.Body != "" {
 		ciWarnings := v.checkCILabelHeuristics(data, prType)
 		allWarnings = append(allWarnings, ciWarnings...)
 	}
@@ -201,7 +264,7 @@ func (v *PRValidator) validatePR(ctx context.Context, data PRData) *validator.Re
 }
 
 // validatePRTitleData validates the PR title
-func validatePRTitleData(title string, allErrors, allWarnings *[]string) {
+func (v *PRValidator) validatePRTitleData(title string, allErrors, allWarnings *[]string) {
 	if title == "" {
 		*allWarnings = append(
 			*allWarnings,
@@ -211,7 +274,11 @@ func validatePRTitleData(title string, allErrors, allWarnings *[]string) {
 		return
 	}
 
-	titleResult := ValidatePRTitle(title)
+	validTypes := v.getValidTypes()
+	titleMaxLength := v.getTitleMaxLength()
+	checkConventionalCommits := v.isTitleConventionalCommitsEnabled()
+
+	titleResult := validatePRTitle(title, titleMaxLength, checkConventionalCommits, validTypes)
 	if !titleResult.Valid {
 		*allErrors = append(*allErrors, titleResult.ErrorMessage)
 		*allErrors = append(*allErrors, titleResult.Details...)
@@ -219,17 +286,27 @@ func validatePRTitleData(title string, allErrors, allWarnings *[]string) {
 }
 
 // validatePRBodyData validates the PR body
-func validatePRBodyData(body, prType string, allErrors, allWarnings *[]string) {
+func (v *PRValidator) validatePRBodyData(body, prType string, allErrors, allWarnings *[]string) {
+	requireBody := v.isRequireBody()
+
 	if body == "" {
-		*allWarnings = append(
-			*allWarnings,
-			"Could not extract PR body - ensure you're using --body flag",
-		)
+		if requireBody {
+			*allErrors = append(
+				*allErrors,
+				"PR body is required - ensure you're using --body flag",
+			)
+		} else {
+			*allWarnings = append(
+				*allWarnings,
+				"Could not extract PR body - ensure you're using --body flag",
+			)
+		}
 
 		return
 	}
 
-	bodyResult := ValidatePRBody(body, prType)
+	requireChangelog := v.isRequireChangelog()
+	bodyResult := validatePRBody(body, prType, requireChangelog)
 	*allErrors = append(*allErrors, bodyResult.Errors...)
 	*allWarnings = append(*allWarnings, bodyResult.Warnings...)
 }

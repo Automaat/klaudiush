@@ -11,16 +11,17 @@ import (
 	"github.com/smykla-labs/klaudiush/internal/linters"
 	"github.com/smykla-labs/klaudiush/internal/validator"
 	"github.com/smykla-labs/klaudiush/internal/validators"
+	"github.com/smykla-labs/klaudiush/pkg/config"
 	"github.com/smykla-labs/klaudiush/pkg/hook"
 	"github.com/smykla-labs/klaudiush/pkg/logger"
 )
 
 const (
-	// markdownTimeout is the timeout for markdown linting
-	markdownTimeout = 10 * time.Second
+	// defaultMarkdownTimeout is the default timeout for markdown linting
+	defaultMarkdownTimeout = 10 * time.Second
 
-	// contextLines is the number of lines before/after an edit to include for validation
-	contextLines = 2
+	// defaultContextLines is the default number of lines before/after an edit to include for validation
+	defaultContextLines = 2
 )
 
 var (
@@ -31,20 +32,59 @@ var (
 // MarkdownValidator validates Markdown formatting rules
 type MarkdownValidator struct {
 	validator.BaseValidator
+	config *config.MarkdownValidatorConfig
 	linter linters.MarkdownLinter
 }
 
 // NewMarkdownValidator creates a new MarkdownValidator
-func NewMarkdownValidator(linter linters.MarkdownLinter, log logger.Logger) *MarkdownValidator {
+func NewMarkdownValidator(
+	cfg *config.MarkdownValidatorConfig,
+	linter linters.MarkdownLinter,
+	log logger.Logger,
+) *MarkdownValidator {
 	return &MarkdownValidator{
 		BaseValidator: *validator.NewBaseValidator("validate-markdown", log),
+		config:        cfg,
 		linter:        linter,
 	}
+}
+
+// getTimeout returns the timeout for markdown linting operations
+func (v *MarkdownValidator) getTimeout() time.Duration {
+	if v.config != nil && v.config.Timeout.ToDuration() > 0 {
+		return v.config.Timeout.ToDuration()
+	}
+
+	return defaultMarkdownTimeout
+}
+
+// getContextLines returns the number of lines before/after an edit to include
+func (v *MarkdownValidator) getContextLines() int {
+	if v.config != nil && v.config.ContextLines != nil {
+		return *v.config.ContextLines
+	}
+
+	return defaultContextLines
+}
+
+// isUseMarkdownlint returns whether markdownlint integration is enabled
+func (v *MarkdownValidator) isUseMarkdownlint() bool {
+	if v.config != nil && v.config.UseMarkdownlint != nil {
+		return *v.config.UseMarkdownlint
+	}
+
+	return true // default: enabled
 }
 
 // Validate checks Markdown formatting rules
 func (v *MarkdownValidator) Validate(ctx context.Context, hookCtx *hook.Context) *validator.Result {
 	log := v.Logger()
+
+	// Skip if markdownlint is disabled
+	if !v.isUseMarkdownlint() {
+		log.Debug("markdownlint is disabled, skipping validation")
+		return validator.Pass()
+	}
 
 	content, initialState, err := v.getContentWithState(hookCtx)
 	if err != nil {
@@ -56,7 +96,9 @@ func (v *MarkdownValidator) Validate(ctx context.Context, hookCtx *hook.Context)
 		return validator.Pass()
 	}
 
-	lintCtx, cancel := context.WithTimeout(ctx, markdownTimeout)
+	timeout := v.getTimeout()
+
+	lintCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	result := v.linter.Lint(lintCtx, content, initialState)
@@ -109,6 +151,8 @@ func (v *MarkdownValidator) getContentWithState(
 		}
 
 		// Extract fragment with context lines around the edit
+		contextLines := v.getContextLines()
+
 		fragment := ExtractEditFragment(
 			string(originalContent),
 			oldStr,
