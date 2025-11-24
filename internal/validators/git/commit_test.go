@@ -643,6 +643,71 @@ EOF
 			})
 		})
 
+		Context("when message contains forbidden patterns", func() {
+			It("should fail with tmp/ directory reference", func() {
+				ctx := &hook.Context{
+					EventType: hook.PreToolUse,
+					ToolName:  hook.Bash,
+					ToolInput: hook.ToolInput{
+						Command: `git commit -sS -a -m "feat(api): add temp storage in tmp/"`,
+					},
+				}
+
+				result := validator.Validate(context.Background(), ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.Details["errors"]).To(ContainSubstring("Forbidden pattern found"))
+				Expect(result.Details["errors"]).To(ContainSubstring("tmp/"))
+			})
+
+			It("should fail with standalone tmp word", func() {
+				ctx := &hook.Context{
+					EventType: hook.PreToolUse,
+					ToolName:  hook.Bash,
+					ToolInput: hook.ToolInput{
+						Command: `git commit -sS -a -m "feat(storage): store files in tmp directory"`,
+					},
+				}
+
+				result := validator.Validate(context.Background(), ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.Details["errors"]).To(ContainSubstring("Forbidden pattern found"))
+				Expect(result.Details["errors"]).To(ContainSubstring("tmp"))
+			})
+
+			It("should pass when tmp is part of a longer word", func() {
+				ctx := &hook.Context{
+					EventType: hook.PreToolUse,
+					ToolName:  hook.Bash,
+					ToolInput: hook.ToolInput{
+						Command: `git commit -sS -a -m "feat(template): add new template file"`,
+					},
+				}
+
+				result := validator.Validate(context.Background(), ctx)
+				Expect(result.Passed).To(BeTrue())
+			})
+
+			It("should fail with tmp in commit body", func() {
+				ctx := &hook.Context{
+					EventType: hook.PreToolUse,
+					ToolName:  hook.Bash,
+					ToolInput: hook.ToolInput{
+						Command: `git commit -sS -a -m "$(cat <<'EOF'
+feat(storage): add file storage
+
+Store temporary files in tmp/ directory for processing.
+EOF
+)"`,
+					},
+				}
+
+				result := validator.Validate(context.Background(), ctx)
+				Expect(result.Passed).To(BeFalse())
+				Expect(result.Details["errors"]).To(ContainSubstring("Forbidden pattern found"))
+				Expect(result.Details["errors"]).To(ContainSubstring("tmp/"))
+			})
+		})
+
 		Context("when message has signoff", func() {
 			It("should pass with signoff when no expected signoff configured", func() {
 				message := `feat(api): add endpoint

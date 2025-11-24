@@ -80,6 +80,11 @@ type CommitMessageConfig struct {
 	// Default: true
 	BlockAIAttribution *bool `json:"block_ai_attribution,omitempty" toml:"block_ai_attribution"`
 
+	// ForbiddenPatterns is a list of regex patterns that are forbidden in commit messages.
+	// Each pattern is a regular expression that will be checked against the entire commit message.
+	// Default: ["\\btmp/", "\\btmp\\b"] (blocks mentions of tmp directory)
+	ForbiddenPatterns []string `json:"forbidden_patterns,omitempty" toml:"forbidden_patterns"`
+
 	// ExpectedSignoff is the expected Signed-off-by trailer value.
 	// When set, commits with Signed-off-by trailers must match this exactly.
 	// Format: "Name <email@example.com>"
@@ -141,6 +146,11 @@ type PRValidatorConfig struct {
 	// MarkdownDisabledRules is a list of markdownlint rules to disable for PR body validation.
 	// Default: ["MD013", "MD034", "MD041"]
 	MarkdownDisabledRules []string `json:"markdown_disabled_rules,omitempty" toml:"markdown_disabled_rules"`
+
+	// ForbiddenPatterns is a list of regex patterns that are forbidden in PR title and body.
+	// Each pattern is a regular expression that will be checked against the PR title and body.
+	// Default: ["\\btmp/", "\\btmp\\b"] (blocks mentions of tmp directory)
+	ForbiddenPatterns []string `json:"forbidden_patterns,omitempty" toml:"forbidden_patterns"`
 }
 
 // BranchValidatorConfig configures the git branch name validator.

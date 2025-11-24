@@ -15,6 +15,9 @@ check_conventional_commits = false
 # This project uses a different signoff
 expected_signoff = "Project Bot <bot@project.example.com>"
 
+# Allow tmp references in this project (remove forbidden patterns)
+forbidden_patterns = []
+
 # Disable Markdown validation for this project
 [validators.file.markdown]
 enabled = false

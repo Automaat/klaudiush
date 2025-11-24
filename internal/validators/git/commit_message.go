@@ -33,6 +33,12 @@ var (
 		"test",
 	}
 
+	// defaultForbiddenPatterns blocks mentions of tmp directory
+	defaultForbiddenPatterns = []string{
+		`\btmp/`,  // tmp/ path references
+		`\btmp\b`, // standalone tmp word
+	}
+
 	// Infrastructure scope misuse: feat(ci), fix(test), etc.
 	infraScopeMisuseRegex = regexp.MustCompile(`^(feat|fix)\((ci|test|docs|build)\):`)
 
@@ -52,6 +58,10 @@ func (v *CommitValidator) validateMessage(message string) *validator.Result {
 	log.Debug("Validating commit message", "length", len(message))
 
 	errors := make([]string, 0)
+
+	// Check for forbidden patterns
+	forbiddenErrors := v.checkForbiddenPatterns(message)
+	errors = append(errors, forbiddenErrors...)
 
 	// Check for Claude AI attribution (if enabled)
 	if v.shouldBlockAIAttribution() && v.containsClaudeAIAttribution(message) {
@@ -383,6 +393,35 @@ func (*CommitValidator) checkPRReferences(message string) []string {
 	return errors
 }
 
+// checkForbiddenPatterns checks for forbidden patterns in the message
+func (v *CommitValidator) checkForbiddenPatterns(message string) []string {
+	patterns := v.getForbiddenPatterns()
+	if len(patterns) == 0 {
+		return nil
+	}
+
+	errors := make([]string, 0)
+
+	for _, pattern := range patterns {
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			v.Logger().Debug("Invalid forbidden pattern", "pattern", pattern, "error", err)
+			continue
+		}
+
+		if re.MatchString(message) {
+			match := re.FindString(message)
+			errors = append(errors,
+				fmt.Sprintf("❌ Forbidden pattern found: '%s'", match),
+				"   Pattern: "+pattern,
+				"   Remove this content from your commit message",
+			)
+		}
+	}
+
+	return errors
+}
+
 // containsClaudeAIAttribution checks for AI attribution patterns while allowing legitimate tool references
 func (*CommitValidator) containsClaudeAIAttribution(message string) bool {
 	lower := strings.ToLower(message)
@@ -534,6 +573,15 @@ func (v *CommitValidator) getExpectedSignoff() string {
 	}
 
 	return ""
+}
+
+// getForbiddenPatterns returns the list of forbidden patterns from config, or defaults
+func (v *CommitValidator) getForbiddenPatterns() []string {
+	if v.config != nil && v.config.Message != nil && len(v.config.Message.ForbiddenPatterns) > 0 {
+		return v.config.Message.ForbiddenPatterns
+	}
+
+	return defaultForbiddenPatterns
 }
 
 // buildConventionalCommitPattern builds a regex pattern for conventional commits

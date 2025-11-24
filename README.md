@@ -174,10 +174,10 @@ klaudiush/
 ### Git Validators
 
 - **GitAddValidator**: Blocks staging files in `tmp/` directory, suggests adding to `.git/info/exclude`
-- **CommitValidator**: Requires `-sS` flags, validates conventional commit format (≤50 char title, ≤72 char body), blocks `feat(ci)`/`fix(test)`, no PR refs or "Claude" mentions
+- **CommitValidator**: Requires `-sS` flags, validates conventional commit format (≤50 char title, ≤72 char body), blocks `feat(ci)`/`fix(test)`, no PR refs or "Claude" mentions, checks forbidden patterns (default: blocks `tmp/` and `tmp` word)
 - **PushValidator**: Validates remote existence with project-specific rules (Kong: requires `upstream`, kumahq/kuma: warns on `upstream`)
 - **BranchValidator**: Enforces `type/description` format (lowercase, no spaces). Valid types: feat, fix, docs, style, refactor, test, chore, ci, build, perf
-- **PRValidator**: Validates PR title (semantic format, blocks `feat(ci)`/`fix(test)`), body (template sections, changelog rules, no formal language), Markdown formatting, and suggests CI labels
+- **PRValidator**: Validates PR title (semantic format, blocks `feat(ci)`/`fix(test)`), body (template sections, changelog rules, no formal language), Markdown formatting, suggests CI labels, checks forbidden patterns (default: blocks `tmp/` and `tmp` word)
 
 ### File Validators
 

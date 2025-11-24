@@ -33,6 +33,12 @@ var (
 	heredocRegex     = regexp.MustCompile(`<<'?EOF'?\s*\n((?s:.+?))\nEOF`)
 	bodyRegex        = regexp.MustCompile(`--body\s+"([^"]+)"`)
 	bodySingleRegex  = regexp.MustCompile(`--body\s+'([^']+)'`)
+
+	// defaultPRForbiddenPatterns blocks mentions of tmp directory
+	defaultPRForbiddenPatterns = []string{
+		`\btmp/`,  // tmp/ path references
+		`\btmp\b`, // standalone tmp word
+	}
 )
 
 const (
@@ -243,11 +249,15 @@ func (v *PRValidator) validatePR(ctx context.Context, data PRData) *validator.Re
 	// 1. Validate PR title
 	v.validatePRTitleData(data.Title, &allErrors, &allWarnings)
 
-	// 2. Extract PR type for body validation
+	// 2. Check for forbidden patterns in title and body
+	forbiddenErrors := v.checkForbiddenPatterns(data.Title, data.Body)
+	allErrors = append(allErrors, forbiddenErrors...)
+
+	// 3. Extract PR type for body validation
 	validTypes := v.getValidTypes()
 	prType := extractPRType(data.Title, validTypes)
 
-	// 3. Validate PR body
+	// 4. Validate PR body
 	v.validatePRBodyData(data.Body, prType, &allErrors, &allWarnings)
 
 	// 4. Validate markdown formatting
@@ -413,4 +423,53 @@ func (*PRValidator) checkCILabelHeuristics(data PRData, prType string) []string 
 	}
 
 	return warnings
+}
+
+// checkForbiddenPatterns checks for forbidden patterns in PR title and body
+func (v *PRValidator) checkForbiddenPatterns(title, body string) []string {
+	patterns := v.getForbiddenPatterns()
+	if len(patterns) == 0 {
+		return nil
+	}
+
+	errors := make([]string, 0)
+
+	for _, pattern := range patterns {
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			v.Logger().Debug("Invalid forbidden pattern", "pattern", pattern, "error", err)
+			continue
+		}
+
+		// Check title
+		if title != "" && re.MatchString(title) {
+			match := re.FindString(title)
+			errors = append(errors,
+				fmt.Sprintf("❌ Forbidden pattern found in PR title: '%s'", match),
+				"   Pattern: "+pattern,
+				"   Remove this content from your PR title",
+			)
+		}
+
+		// Check body
+		if body != "" && re.MatchString(body) {
+			match := re.FindString(body)
+			errors = append(errors,
+				fmt.Sprintf("❌ Forbidden pattern found in PR body: '%s'", match),
+				"   Pattern: "+pattern,
+				"   Remove this content from your PR body",
+			)
+		}
+	}
+
+	return errors
+}
+
+// getForbiddenPatterns returns the list of forbidden patterns from config, or defaults
+func (v *PRValidator) getForbiddenPatterns() []string {
+	if v.config != nil && len(v.config.ForbiddenPatterns) > 0 {
+		return v.config.ForbiddenPatterns
+	}
+
+	return defaultPRForbiddenPatterns
 }

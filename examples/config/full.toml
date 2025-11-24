@@ -32,6 +32,14 @@ require_scope = true
 block_infra_scope_misuse = true
 block_pr_references = true
 block_ai_attribution = true
+
+# Forbidden patterns (regex) that are not allowed in commit messages
+# Default: ["\\btmp/", "\\btmp\\b"] (blocks tmp directory mentions)
+forbidden_patterns = [
+  "\\btmp/",   # Block tmp/ path references
+  "\\btmp\\b"  # Block standalone tmp word
+]
+
 expected_signoff = "Your Name <your.email@example.com>"
 
 # Git Push Validator
@@ -56,6 +64,13 @@ require_body = false
 # Markdownlint rules to disable for PR body validation
 # Default: ["MD013", "MD034", "MD041"]
 markdown_disabled_rules = ["MD013", "MD034", "MD041"]
+
+# Forbidden patterns (regex) that are not allowed in PR title and body
+# Default: ["\\btmp/", "\\btmp\\b"] (blocks tmp directory mentions)
+forbidden_patterns = [
+  "\\btmp/",   # Block tmp/ path references
+  "\\btmp\\b"  # Block standalone tmp word
+]
 
 # Git Branch Validator
 [validators.git.branch]

@@ -520,6 +520,94 @@ See docs/api.md"`,
 			Expect(result.Passed).To(BeTrue())
 		})
 
+		It("should fail with forbidden pattern in title", func() {
+			ctx := &hook.Context{
+				EventType: hook.PreToolUse,
+				ToolName:  hook.Bash,
+				ToolInput: hook.ToolInput{
+					Command: `gh pr create --title "feat(storage): use tmp/ for temp files" --body "$(cat <<'EOF'
+## Summary
+
+Add temporary storage using tmp directory.
+
+## Test plan
+
+- Unit tests added
+EOF
+)"`,
+				},
+			}
+
+			result := validator.Validate(context.Background(), ctx)
+			Expect(result.Passed).To(BeFalse())
+			Expect(result.Message).To(ContainSubstring("Forbidden pattern found in PR title"))
+			Expect(result.Message).To(ContainSubstring("tmp/"))
+		})
+
+		It("should fail with forbidden pattern in body", func() {
+			ctx := &hook.Context{
+				EventType: hook.PreToolUse,
+				ToolName:  hook.Bash,
+				ToolInput: hook.ToolInput{
+					Command: `gh pr create --title "feat(storage): add file storage" --body "$(cat <<'EOF'
+## Summary
+
+Add file storage capabilities.
+
+## Implementation information
+
+- Store files in tmp/ directory
+- Add cleanup logic
+
+## Test plan
+
+- Unit tests added
+EOF
+)"`,
+				},
+			}
+
+			result := validator.Validate(context.Background(), ctx)
+			Expect(result.Passed).To(BeFalse())
+			Expect(result.Message).To(ContainSubstring("Forbidden pattern found in PR body"))
+			Expect(result.Message).To(ContainSubstring("tmp/"))
+		})
+
+		It("should pass with template word (not tmp)", func() {
+			ctx := &hook.Context{
+				EventType: hook.PreToolUse,
+				ToolName:  hook.Bash,
+				ToolInput: hook.ToolInput{
+					Command: `gh pr create --title "feat(template): add new template" --body "$(cat <<'EOF'
+## Summary
+
+Add template support for rendering content.
+
+## Motivation
+
+Users need template functionality.
+
+## Implementation information
+
+- Added Template class
+- Template parsing logic
+
+## Supporting documentation
+
+See templates/README.md
+
+## Test plan
+
+- Template tests added
+EOF
+)"`,
+				},
+			}
+
+			result := validator.Validate(context.Background(), ctx)
+			Expect(result.Passed).To(BeTrue())
+		})
+
 		It("should extract title with single quotes", func() {
 			ctx := &hook.Context{
 				EventType: hook.PreToolUse,
