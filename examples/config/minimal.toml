@@ -1,0 +1,9 @@
+# Minimal klaudiush configuration example
+# This shows the simplest possible configuration to get started
+
+# Disable specific validators
+[validators.git.commit]
+enabled = false
+
+[validators.file.markdown]
+enabled = false

@@ -1,0 +1,28 @@
+# Project-specific configuration example
+# This shows how to override global settings for a specific project
+
+# Override commit message validation for this project
+[validators.git.commit]
+enabled = true
+
+[validators.git.commit.message]
+# This project allows longer commit titles
+title_max_length = 72
+
+# This project doesn't require conventional commits
+check_conventional_commits = false
+
+# This project uses a different signoff
+expected_signoff = "Project Bot <bot@project.example.com>"
+
+# Disable Markdown validation for this project
+[validators.file.markdown]
+enabled = false
+
+# Allow more time for Terraform operations in this project
+[validators.file.terraform]
+timeout = "30s"
+
+# This project doesn't enforce digest pinning for GitHub Actions
+[validators.file.workflow]
+enforce_digest_pinning = false

@@ -1,0 +1,114 @@
+# Complete klaudiush configuration example
+# This shows all available configuration options with their default values
+
+# Git Validators
+[validators.git]
+
+# Git Add Validator
+[validators.git.add]
+enabled = true
+severity = "error"
+blocked_patterns = ["tmp/*", "*.secret"]
+
+# Git Commit Validator
+[validators.git.commit]
+enabled = true
+severity = "error"
+required_flags = ["-s", "-S"]
+check_staging_area = true
+enable_message_validation = true
+
+# Commit Message Validation
+[validators.git.commit.message]
+title_max_length = 50
+body_max_line_length = 72
+body_line_tolerance = 5
+check_conventional_commits = true
+valid_types = [
+  "feat", "fix", "docs", "style", "refactor",
+  "perf", "test", "build", "ci", "chore", "revert"
+]
+require_scope = true
+block_infra_scope_misuse = true
+block_pr_references = true
+block_ai_attribution = true
+expected_signoff = "Your Name <your.email@example.com>"
+
+# Git Push Validator
+[validators.git.push]
+enabled = true
+severity = "error"
+
+# Git PR Validator
+[validators.git.pr]
+enabled = true
+severity = "error"
+title_max_length = 50
+enable_conventional_commits = true
+valid_types = [
+  "feat", "fix", "docs", "style", "refactor",
+  "perf", "test", "build", "ci", "chore", "revert"
+]
+require_changelog = false
+check_ci_labels = false
+require_body = false
+
+# Git Branch Validator
+[validators.git.branch]
+enabled = true
+severity = "error"
+protected_branches = ["main", "master"]
+valid_types = ["feat", "fix", "chore", "docs", "refactor", "test"]
+require_type = true
+allow_uppercase = false
+
+# Git No-Verify Validator
+[validators.git.no_verify]
+enabled = true
+severity = "error"
+
+# File Validators
+[validators.file]
+
+# Markdown Validator
+[validators.file.markdown]
+enabled = true
+severity = "error"
+timeout = "10s"
+context_lines = 2
+use_markdownlint = true
+
+# Shell Script Validator
+[validators.file.shellscript]
+enabled = true
+severity = "error"
+timeout = "10s"
+context_lines = 2
+
+# Terraform Validator
+[validators.file.terraform]
+enabled = true
+severity = "error"
+timeout = "10s"
+context_lines = 2
+check_format = true
+use_tflint = true
+
+# GitHub Actions Workflow Validator
+[validators.file.workflow]
+enabled = true
+severity = "error"
+timeout = "10s"
+gh_api_timeout = "5s"
+enforce_digest_pinning = true
+require_version_comment = true
+check_latest_version = true
+use_actionlint = true
+
+# Notification Validators
+[validators.notification]
+
+# Bell Validator
+[validators.notification.bell]
+enabled = true
+# custom_command = "osascript -e 'beep'"  # macOS notification sound
