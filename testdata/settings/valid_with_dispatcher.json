@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "klaudiush --hook-type PreToolUse",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
