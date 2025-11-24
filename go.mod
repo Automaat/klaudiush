@@ -3,7 +3,7 @@ module github.com/smykla-labs/klaudiush
 go 1.25.4
 
 require (
-	github.com/go-git/go-git/v6 v6.0.0-20251121083746-39fcec474970
+	github.com/go-git/go-git/v6 v6.0.0-20251123213212-d5ca7ab6ebf9
 	github.com/google/go-github/v79 v79.0.0
 	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
