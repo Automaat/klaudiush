@@ -4,6 +4,7 @@ package file
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -109,6 +110,15 @@ func (v *MarkdownValidator) Validate(ctx context.Context, hookCtx *hook.Context)
 			"errors": strings.TrimSpace(result.RawOut),
 		}
 
+		// Include table suggestions if available
+		if len(result.TableSuggested) > 0 {
+			for lineNum, suggestion := range result.TableSuggested {
+				details["suggested_table"] = formatTableSuggestion(lineNum, suggestion)
+
+				break // Only include first suggestion in details for now
+			}
+		}
+
 		return validator.FailWithDetails(message, details)
 	}
 
@@ -196,4 +206,9 @@ func (v *MarkdownValidator) getContentWithState(
 	}
 
 	return "", nil, errNoContent
+}
+
+// formatTableSuggestion formats a table suggestion for display in error details.
+func formatTableSuggestion(lineNum int, suggestion string) string {
+	return fmt.Sprintf("Line %d - Use this properly formatted table:\n\n%s", lineNum, suggestion)
 }

@@ -59,6 +59,21 @@ type MarkdownValidatorConfig struct {
 	// If specified, this file takes precedence over MarkdownlintRules.
 	// Default: "" (use MarkdownlintRules or markdownlint defaults)
 	MarkdownlintConfig string `json:"markdownlint_config,omitempty" toml:"markdownlint_config"`
+
+	// TableFormatting enables validation and formatting suggestions for Markdown tables.
+	// When enabled, malformed tables will be detected and properly formatted alternatives
+	// will be suggested in error messages.
+	// Default: true
+	TableFormatting *bool `json:"table_formatting,omitempty" toml:"table_formatting"`
+
+	// TableFormattingMode controls how table column widths are calculated.
+	// Options:
+	//   - "display_width": Uses proper display width for Unicode characters (CJK, emoji).
+	//     Tables will be visually aligned but may fail markdownlint MD060.
+	//   - "byte_width": Uses byte length for width calculations.
+	//     Tables will pass markdownlint MD060 but may not be visually aligned for Unicode.
+	// Default: "display_width"
+	TableFormattingMode string `json:"table_formatting_mode,omitempty" toml:"table_formatting_mode"`
 }
 
 // ShellScriptValidatorConfig configures the shell script validator.

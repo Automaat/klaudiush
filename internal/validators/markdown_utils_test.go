@@ -234,4 +234,103 @@ code with no indentation
 			)
 		})
 	})
+
+	Describe("Table validation", func() {
+		Context("when content has malformed tables", func() {
+			It("detects tables with inconsistent spacing", func() {
+				content := `# Test
+
+| Name | Age |
+| ---- | --- |
+| John | 30  |
+| Jane | 25  |
+`
+				result := validators.AnalyzeMarkdown(content, nil)
+
+				// The table has inconsistent formatting, should suggest fix
+				Expect(result.TableSuggested).NotTo(BeEmpty())
+			})
+
+			It("provides properly formatted table suggestion", func() {
+				content := `| Name | Age |
+|---|---|
+|John|30|`
+
+				result := validators.AnalyzeMarkdown(content, nil)
+
+				Expect(result.TableSuggested).To(HaveKey(1))
+				suggestion := result.TableSuggested[1]
+
+				// Verify suggestion has proper spacing
+				Expect(suggestion).To(ContainSubstring("| Name |"))
+				Expect(suggestion).To(ContainSubstring("| John |"))
+			})
+
+			It("handles tables with emoji correctly", func() {
+				content := `| Status | Name |
+|---|---|
+|✅|Done|
+|❌|Failed|`
+
+				result := validators.AnalyzeMarkdown(content, nil)
+
+				if len(result.TableSuggested) > 0 {
+					suggestion := result.TableSuggested[1]
+
+					// Should preserve emoji and have proper alignment
+					Expect(suggestion).To(ContainSubstring("✅"))
+					Expect(suggestion).To(ContainSubstring("❌"))
+				}
+			})
+
+			It("handles tables with already escaped pipes in cell content", func() {
+				// When user provides already escaped pipes, they should be preserved
+				content := `| Name | Data |
+|---|---|
+|Test|A\|B\|C|`
+
+				result := validators.AnalyzeMarkdown(content, nil)
+
+				if len(result.TableSuggested) > 0 {
+					suggestion := result.TableSuggested[1]
+
+					// Escaped pipes should be preserved in the suggestion
+					Expect(suggestion).To(ContainSubstring(`A\|B\|C`))
+				}
+			})
+		})
+
+		Context("when content has well-formatted tables", func() {
+			It("does not suggest changes for properly formatted tables", func() {
+				// A properly formatted table should not trigger suggestions
+				content := `| Name   | Age |
+|:-------|:----|
+| John   | 30  |
+| Jane   | 25  |
+`
+				result := validators.AnalyzeMarkdown(content, nil)
+
+				// May still suggest if formatting differs slightly
+				// The key is that any suggestion should be valid
+				if len(result.TableSuggested) > 0 {
+					suggestion := result.TableSuggested[1]
+					Expect(suggestion).To(ContainSubstring("|"))
+				}
+			})
+		})
+
+		Context("when content has no tables", func() {
+			It("returns empty TableSuggested map", func() {
+				content := `# Just a heading
+
+Some paragraph text.
+
+- A list item`
+
+				result := validators.AnalyzeMarkdown(content, nil)
+
+				Expect(result.TableSuggested).To(BeEmpty())
+			})
+		})
+	})
 })

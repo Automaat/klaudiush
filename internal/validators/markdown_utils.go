@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/smykla-labs/klaudiush/pkg/mdtable"
 )
 
 const (
@@ -22,7 +24,27 @@ type MarkdownState struct {
 
 // MarkdownAnalysisResult contains markdown validation warnings
 type MarkdownAnalysisResult struct {
-	Warnings []string
+	Warnings       []string
+	TableSuggested map[int]string // Line number -> suggested formatted table
+}
+
+// AnalysisOptions contains options for markdown analysis.
+type AnalysisOptions struct {
+	// CheckTableFormatting enables table formatting validation.
+	// Default: true
+	CheckTableFormatting bool
+
+	// TableWidthMode controls how table column widths are calculated.
+	// Default: mdtable.WidthModeDisplay
+	TableWidthMode mdtable.WidthMode
+}
+
+// DefaultAnalysisOptions returns the default analysis options.
+func DefaultAnalysisOptions() AnalysisOptions {
+	return AnalysisOptions{
+		CheckTableFormatting: true,
+		TableWidthMode:       mdtable.WidthModeDisplay,
+	}
 }
 
 // listContext tracks the context of a list item for indentation validation
@@ -68,11 +90,30 @@ func DetectMarkdownState(content string, upToLine int) MarkdownState {
 
 // AnalyzeMarkdown performs line-by-line markdown analysis and returns warnings.
 // If initialState is provided, it uses that as the starting state (for fragment validation).
-func AnalyzeMarkdown(content string, initialState *MarkdownState) MarkdownAnalysisResult {
-	result := MarkdownAnalysisResult{Warnings: []string{}}
+// Options can be provided to control table formatting validation.
+func AnalyzeMarkdown(
+	content string,
+	initialState *MarkdownState,
+	opts ...AnalysisOptions,
+) MarkdownAnalysisResult {
+	result := MarkdownAnalysisResult{
+		Warnings:       []string{},
+		TableSuggested: make(map[int]string),
+	}
 
 	if content == "" {
 		return result
+	}
+
+	// Use provided options or defaults
+	options := DefaultAnalysisOptions()
+	if len(opts) > 0 {
+		options = opts[0]
+	}
+
+	// Check for table issues and collect suggestions if enabled
+	if options.CheckTableFormatting {
+		checkTables(content, &result, options.TableWidthMode)
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(content))
@@ -334,4 +375,31 @@ func truncate(s string) string {
 	}
 
 	return s[:maxTruncateLength]
+}
+
+// checkTables parses markdown tables and checks for formatting issues.
+// When issues are found, it adds warnings and suggests properly formatted tables.
+func checkTables(content string, result *MarkdownAnalysisResult, widthMode mdtable.WidthMode) {
+	parseResult := mdtable.Parse(content)
+
+	for _, table := range parseResult.Tables {
+		// Check if the table needs reformatting by comparing original vs formatted
+		formatted := mdtable.FormatTableWithMode(&table, widthMode)
+		original := strings.Join(table.RawLines, "\n") + "\n"
+
+		if formatted != original {
+			result.Warnings = append(result.Warnings,
+				fmt.Sprintf("⚠️  Line %d: Markdown table has formatting issues", table.StartLine),
+				"   Table should be properly formatted with consistent column widths",
+			)
+			result.TableSuggested[table.StartLine] = formatted
+		}
+	}
+
+	// Add any specific issues from parsing
+	for _, issue := range parseResult.Issues {
+		result.Warnings = append(result.Warnings,
+			fmt.Sprintf("⚠️  Line %d: %s", issue.Line, issue.Message),
+		)
+	}
 }

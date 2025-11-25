@@ -10,6 +10,7 @@ import (
 	execpkg "github.com/smykla-labs/klaudiush/internal/exec"
 	"github.com/smykla-labs/klaudiush/internal/validators"
 	"github.com/smykla-labs/klaudiush/pkg/config"
+	"github.com/smykla-labs/klaudiush/pkg/mdtable"
 )
 
 const (
@@ -71,9 +72,23 @@ func (l *RealMarkdownLinter) Lint(
 ) *LintResult {
 	var allWarnings []string
 
+	tableSuggested := make(map[int]string)
+
 	// Run custom markdown analysis (built-in rules)
-	analysisResult := validators.AnalyzeMarkdown(content, initialState)
+	analysisResult := validators.AnalyzeMarkdown(
+		content,
+		initialState,
+		validators.AnalysisOptions{
+			CheckTableFormatting: l.isTableFormattingEnabled(),
+			TableWidthMode:       l.getTableWidthMode(),
+		},
+	)
 	allWarnings = append(allWarnings, analysisResult.Warnings...)
+
+	// Copy table suggestions from analysis result if table formatting is enabled
+	if l.isTableFormattingEnabled() {
+		maps.Copy(tableSuggested, analysisResult.TableSuggested)
+	}
 
 	// Run markdownlint-cli if enabled and available
 	if l.shouldUseMarkdownlint() {
@@ -87,18 +102,20 @@ func (l *RealMarkdownLinter) Lint(
 		output := strings.Join(allWarnings, "\n")
 
 		return &LintResult{
-			Success:  false,
-			RawOut:   output,
-			Findings: []LintFinding{},
-			Err:      ErrMarkdownCustomRules,
+			Success:        false,
+			RawOut:         output,
+			Findings:       []LintFinding{},
+			Err:            ErrMarkdownCustomRules,
+			TableSuggested: tableSuggested,
 		}
 	}
 
 	return &LintResult{
-		Success:  true,
-		RawOut:   "",
-		Findings: []LintFinding{},
-		Err:      nil,
+		Success:        true,
+		RawOut:         "",
+		Findings:       []LintFinding{},
+		Err:            nil,
+		TableSuggested: nil,
 	}
 }
 
@@ -109,6 +126,29 @@ func (l *RealMarkdownLinter) shouldUseMarkdownlint() bool {
 	}
 
 	return *l.config.UseMarkdownlint
+}
+
+// isTableFormattingEnabled determines if table formatting validation is enabled
+func (l *RealMarkdownLinter) isTableFormattingEnabled() bool {
+	if l.config == nil || l.config.TableFormatting == nil {
+		return true // Default: enabled
+	}
+
+	return *l.config.TableFormatting
+}
+
+// getTableWidthMode returns the configured table width calculation mode.
+func (l *RealMarkdownLinter) getTableWidthMode() mdtable.WidthMode {
+	if l.config == nil || l.config.TableFormattingMode == "" {
+		return mdtable.WidthModeDisplay // Default: display width
+	}
+
+	switch l.config.TableFormattingMode {
+	case "byte_width":
+		return mdtable.WidthModeByte
+	default:
+		return mdtable.WidthModeDisplay
+	}
 }
 
 // runMarkdownlint runs markdownlint-cli on the content
