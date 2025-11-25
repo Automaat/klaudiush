@@ -169,6 +169,8 @@ func TestProvider(t *testing.T) {
 	t.Run("invalid config fails validation", func(t *testing.T) {
 		t.Parallel()
 
+		// Test with an invalid Severity value (out of range enum value)
+		// This simulates a corrupted or manually set invalid value
 		source := &mockSource{
 			name: "test",
 			config: &pkgconfig.Config{
@@ -176,7 +178,7 @@ func TestProvider(t *testing.T) {
 					Git: &pkgconfig.GitConfig{
 						Commit: &pkgconfig.CommitValidatorConfig{
 							ValidatorConfig: pkgconfig.ValidatorConfig{
-								Severity: pkgconfig.Severity("invalid"),
+								Severity: pkgconfig.Severity(99), // Invalid enum value
 							},
 						},
 					},

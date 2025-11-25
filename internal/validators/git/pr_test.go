@@ -416,8 +416,8 @@ See docs/api.md`
 	Describe("Full Validator", func() {
 		It("should pass for valid gh pr create command", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(api): add endpoint" --body "$(cat <<'EOF'
 # PR Title
@@ -445,8 +445,8 @@ EOF
 
 		It("should fail for invalid title format", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "Add endpoint" --body "$(cat <<'EOF'
 # PR Title
@@ -476,8 +476,8 @@ EOF
 
 		It("should fail for feat(ci) title", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(ci): add workflow" --body "$(cat <<'EOF'
 # PR Title
@@ -502,8 +502,8 @@ EOF
 
 		It("should fail for missing required sections", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(api): add endpoint" --body "$(cat <<'EOF'
 ## Motivation
@@ -522,8 +522,8 @@ EOF
 
 		It("should fail for non-main base without label", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(api): add endpoint" --base "release/1.0" --body "$(cat <<'EOF'
 # PR Title
@@ -552,8 +552,8 @@ EOF
 
 		It("should pass for non-main base with matching label", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(api): add endpoint" --base "release/1.0" --label "release/1.0" --body "$(cat <<'EOF'
 # PR Title
@@ -581,8 +581,8 @@ EOF
 
 		It("should warn for ci type without ci/skip label", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "ci(workflow): update pipeline" --body "$(cat <<'EOF'
 # PR Title
@@ -613,8 +613,8 @@ EOF
 
 		It("should handle command chains with gh pr create", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git add . && gh pr create --title "feat(api): add endpoint" --body "# PR Title
 
@@ -639,8 +639,8 @@ See docs/api.md"`,
 
 		It("should fail with forbidden pattern in title", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(storage): use tmp/ for temp files" --body "$(cat <<'EOF'
 ## Summary
@@ -663,8 +663,8 @@ EOF
 
 		It("should fail with forbidden pattern in body", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(storage): add file storage" --body "$(cat <<'EOF'
 ## Summary
@@ -692,8 +692,8 @@ EOF
 
 		It("should pass with template word (not tmp)", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title "feat(template): add new template" --body "$(cat <<'EOF'
 ## Summary
@@ -727,8 +727,8 @@ EOF
 
 		It("should extract title with single quotes", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `gh pr create --title 'feat(api): add endpoint' --body '# PR Title
 
@@ -753,8 +753,8 @@ See docs/api.md'`,
 
 		It("should pass for non-gh commands", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git status",
 				},

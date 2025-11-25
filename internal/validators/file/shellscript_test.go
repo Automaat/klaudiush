@@ -26,8 +26,8 @@ var _ = Describe("ShellScriptValidator", func() {
 		checker := linters.NewShellChecker(runner)
 		v = file.NewShellScriptValidator(logger.NewNoOpLogger(), checker, nil)
 		ctx = &hook.Context{
-			EventType: hook.PreToolUse,
-			ToolName:  hook.Write,
+			EventType: hook.EventTypePreToolUse,
+			ToolName:  hook.ToolTypeWrite,
 			ToolInput: hook.ToolInput{},
 		}
 	})

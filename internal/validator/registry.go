@@ -168,7 +168,7 @@ func BashWritesFileWithExtension(exts ...string) Predicate {
 
 	return func(ctx *hook.Context) bool {
 		// Only apply to Bash commands
-		if ctx.ToolName != hook.Bash {
+		if ctx.ToolName != hook.ToolTypeBash {
 			return false
 		}
 
@@ -332,7 +332,7 @@ func GitSubcommandWithoutAnyFlag(subcommand string, flags ...string) Predicate {
 // parseGitFromContext parses the git command from a hook context.
 // Returns nil if the command is not a git command or parsing fails.
 func parseGitFromContext(ctx *hook.Context) *parser.GitCommand {
-	if ctx.ToolName != hook.Bash {
+	if ctx.ToolName != hook.ToolTypeBash {
 		return nil
 	}
 

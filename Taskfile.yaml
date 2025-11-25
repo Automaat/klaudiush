@@ -25,8 +25,22 @@ tasks:
     cmds:
       - task --list
 
+  generate:
+    desc: Run go generate for enumer code generation
+    cmds:
+      - mise exec -- go generate ./...
+    sources:
+      - pkg/hook/context.go
+      - pkg/config/types.go
+    generates:
+      - pkg/hook/eventtype_enumer.go
+      - pkg/hook/tooltype_enumer.go
+      - pkg/config/severity_enumer.go
+
   build:
     desc: Build the binary (without signoff validation)
+    deps:
+      - generate
     cmds:
       - mise exec -- go build -o bin/{{.BINARY_NAME}} ./cmd/klaudiush
     sources:

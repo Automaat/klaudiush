@@ -97,8 +97,6 @@ func (l *FileLogger) Error(msg string, keysAndValues ...any) {
 }
 
 // With returns a new logger with additional base key-value pairs.
-//
-//nolint:ireturn // With is intended to return an interface for chaining
 func (l *FileLogger) With(keysAndValues ...any) Logger {
 	newKVs := make([]any, len(l.baseKVs)+len(keysAndValues))
 	copy(newKVs, l.baseKVs)
@@ -197,8 +195,6 @@ func (*NoOpLogger) Info(string, ...any) {}
 func (*NoOpLogger) Error(string, ...any) {}
 
 // With returns the same NoOpLogger.
-//
-//nolint:ireturn // With is intended to return an interface for chaining
 func (n *NoOpLogger) With(...any) Logger {
 	return n
 }

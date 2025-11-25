@@ -3,44 +3,53 @@ package hook
 
 import "encoding/json"
 
+//go:generate enumer -type=EventType -trimprefix=EventType -json -text -yaml -sql
+//go:generate enumer -type=ToolType -trimprefix=ToolType -json -text -yaml -sql
+
 // EventType represents the type of hook event.
-type EventType string
+type EventType int
 
 const (
-	// PreToolUse is triggered before a tool is executed.
-	PreToolUse EventType = "PreToolUse"
+	// EventTypeUnknown represents an unknown event type.
+	EventTypeUnknown EventType = iota
 
-	// PostToolUse is triggered after a tool is executed.
-	PostToolUse EventType = "PostToolUse"
+	// EventTypePreToolUse is triggered before a tool is executed.
+	EventTypePreToolUse
 
-	// Notification is triggered for user notifications.
-	Notification EventType = "Notification"
+	// EventTypePostToolUse is triggered after a tool is executed.
+	EventTypePostToolUse
+
+	// EventTypeNotification is triggered for user notifications.
+	EventTypeNotification
 )
 
 // ToolType represents the type of tool being used.
-type ToolType string
+type ToolType int
 
 const (
-	// Bash represents the Bash tool for executing shell commands.
-	Bash ToolType = "Bash"
+	// ToolTypeUnknown represents an unknown tool type.
+	ToolTypeUnknown ToolType = iota
 
-	// Write represents the Write tool for creating files.
-	Write ToolType = "Write"
+	// ToolTypeBash represents the Bash tool for executing shell commands.
+	ToolTypeBash
 
-	// Edit represents the Edit tool for modifying files.
-	Edit ToolType = "Edit"
+	// ToolTypeWrite represents the Write tool for creating files.
+	ToolTypeWrite
 
-	// MultiEdit represents the MultiEdit tool for modifying multiple files.
-	MultiEdit ToolType = "MultiEdit"
+	// ToolTypeEdit represents the Edit tool for modifying files.
+	ToolTypeEdit
 
-	// Grep represents the Grep tool for searching files.
-	Grep ToolType = "Grep"
+	// ToolTypeMultiEdit represents the MultiEdit tool for modifying multiple files.
+	ToolTypeMultiEdit
 
-	// Read represents the Read tool for reading files.
-	Read ToolType = "Read"
+	// ToolTypeGrep represents the Grep tool for searching files.
+	ToolTypeGrep
 
-	// Glob represents the Glob tool for finding files by pattern.
-	Glob ToolType = "Glob"
+	// ToolTypeRead represents the Read tool for reading files.
+	ToolTypeRead
+
+	// ToolTypeGlob represents the Glob tool for finding files by pattern.
+	ToolTypeGlob
 )
 
 // ToolInput contains the raw tool input data.
@@ -109,10 +118,12 @@ func (c *Context) GetContent() string {
 
 // IsBashTool returns true if the tool is Bash.
 func (c *Context) IsBashTool() bool {
-	return c.ToolName == Bash
+	return c.ToolName == ToolTypeBash
 }
 
 // IsFileTool returns true if the tool is a file operation (Write, Edit, MultiEdit).
 func (c *Context) IsFileTool() bool {
-	return c.ToolName == Write || c.ToolName == Edit || c.ToolName == MultiEdit
+	return c.ToolName == ToolTypeWrite ||
+		c.ToolName == ToolTypeEdit ||
+		c.ToolName == ToolTypeMultiEdit
 }

@@ -26,8 +26,8 @@ var _ = Describe("TerraformValidator", func() {
 		linter := linters.NewTfLinter(runner)
 		v = file.NewTerraformValidator(formatter, linter, logger.NewNoOpLogger(), nil)
 		ctx = &hook.Context{
-			EventType: hook.PreToolUse,
-			ToolName:  hook.Write,
+			EventType: hook.EventTypePreToolUse,
+			ToolName:  hook.ToolTypeWrite,
 		}
 	})
 
@@ -121,7 +121,7 @@ type=string
 
 		Context("edge cases", func() {
 			It("skips validation for Edit operations in PreToolUse", func() {
-				ctx.ToolName = hook.Edit
+				ctx.ToolName = hook.ToolTypeEdit
 				ctx.ToolInput.FilePath = "/path/to/main.tf"
 				ctx.ToolInput.Content = ""
 				result := v.Validate(context.Background(), ctx)

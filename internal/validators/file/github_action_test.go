@@ -56,8 +56,8 @@ var _ = Describe("WorkflowValidator", func() {
 		Context("when file is not a workflow file", func() {
 			It("should pass for non-workflow paths", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/path/to/regular/file.yml",
 						Content:  "some: yaml",
@@ -70,8 +70,8 @@ var _ = Describe("WorkflowValidator", func() {
 
 			It("should pass for workflows in wrong directory", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/workflows/test.yml",
 						Content:  "some: yaml",
@@ -86,8 +86,8 @@ var _ = Describe("WorkflowValidator", func() {
 		Context("when file is a workflow file", func() {
 			It("should pass for digest-pinned action with version comment (inline)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -107,8 +107,8 @@ jobs:
 
 			It("should pass for digest-pinned action with version comment (previous line)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -129,8 +129,8 @@ jobs:
 
 			It("should fail for digest-pinned action without version comment", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -157,8 +157,8 @@ jobs:
 				"should pass for tag-pinned action with explanation comment (previous line)",
 				func() {
 					ctx := &hook.Context{
-						EventType: hook.PreToolUse,
-						ToolName:  hook.Write,
+						EventType: hook.EventTypePreToolUse,
+						ToolName:  hook.ToolTypeWrite,
 						ToolInput: hook.ToolInput{
 							FilePath: "/project/.github/workflows/test.yml",
 							Content: `name: Test
@@ -180,8 +180,8 @@ jobs:
 
 			It("should pass for tag-pinned action with explanation comment (inline)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -201,8 +201,8 @@ jobs:
 
 			It("should fail for tag-pinned action without explanation", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -224,8 +224,8 @@ jobs:
 
 			It("should skip local actions (./...)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -245,8 +245,8 @@ jobs:
 
 			It("should skip Docker actions (docker://...)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -266,8 +266,8 @@ jobs:
 
 			It("should handle multiple actions with mixed violations", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -292,8 +292,8 @@ jobs:
 
 			It("should handle YAML list item syntax (- uses:)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -314,8 +314,8 @@ jobs:
 
 			It("should handle .yaml extension", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yaml",
 						Content: `name: Test
@@ -335,8 +335,8 @@ jobs:
 
 			It("should handle empty content", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content:  "",
@@ -349,8 +349,8 @@ jobs:
 
 			It("should handle SHA-256 digests (64 chars)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -370,8 +370,8 @@ jobs:
 
 			It("should handle version with patch and prerelease", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -391,8 +391,8 @@ jobs:
 
 			It("should reject 'version' prefix without 'v'", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -416,8 +416,8 @@ jobs:
 		Context("when validating Edit operations", func() {
 			It("should skip Edit operations in PreToolUse", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Edit,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeEdit,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 					},
@@ -431,8 +431,8 @@ jobs:
 		Context("when file is a composable action", func() {
 			It("should validate action.yml with digest-pinned actions", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/actions/my-action/action.yml",
 						Content: `name: My Action
@@ -451,8 +451,8 @@ runs:
 
 			It("should validate action.yaml with digest-pinned actions", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/actions/setup/action.yaml",
 						Content: `name: Setup Action
@@ -471,8 +471,8 @@ runs:
 
 			It("should fail for action.yml with missing version comment", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/actions/my-action/action.yml",
 						Content: `name: My Action
@@ -493,8 +493,8 @@ runs:
 
 			It("should fail for action with tag-pinned action without explanation", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/actions/deploy/action.yml",
 						Content: `name: Deploy Action
@@ -515,8 +515,8 @@ runs:
 
 			It("should pass for action with tag-pinned action with explanation", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/actions/deploy/action.yml",
 						Content: `name: Deploy Action
@@ -536,8 +536,8 @@ runs:
 
 			It("should skip validation for non-action files in .github/actions/", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/actions/my-action/README.md",
 						Content:  "# My Action Documentation",
@@ -552,8 +552,8 @@ runs:
 		Context("version comment extraction", func() {
 			It("should extract version without 'v' prefix", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -573,8 +573,8 @@ jobs:
 
 			It("should extract major.minor version", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -596,8 +596,8 @@ jobs:
 		Context("explanation comment detection", func() {
 			It("should accept explanation with version-like numbers", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test
@@ -618,8 +618,8 @@ jobs:
 
 			It("should reject version-only comment as explanation", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Write,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeWrite,
 					ToolInput: hook.ToolInput{
 						FilePath: "/project/.github/workflows/test.yml",
 						Content: `name: Test

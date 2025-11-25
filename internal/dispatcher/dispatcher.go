@@ -71,7 +71,7 @@ func (d *Dispatcher) Dispatch(ctx context.Context, hookCtx *hook.Context) []*Val
 	validationErrors := d.runValidators(ctx, hookCtx)
 
 	// If this is a Bash PreToolUse, also validate synthetic Write contexts for file writes
-	if hookCtx.EventType == hook.PreToolUse && hookCtx.ToolName == hook.Bash {
+	if hookCtx.EventType == hook.EventTypePreToolUse && hookCtx.ToolName == hook.ToolTypeBash {
 		syntheticErrors := d.validateBashFileWrites(ctx, hookCtx)
 		validationErrors = append(validationErrors, syntheticErrors...)
 	}
@@ -169,8 +169,8 @@ func (d *Dispatcher) validateBashFileWrites(
 	// Create synthetic Write context for each file write
 	for _, fw := range result.FileWrites {
 		syntheticCtx := &hook.Context{
-			EventType: hook.PreToolUse,
-			ToolName:  hook.Write,
+			EventType: hook.EventTypePreToolUse,
+			ToolName:  hook.ToolTypeWrite,
 			ToolInput: hook.ToolInput{
 				FilePath: fw.Path,
 				Content:  fw.Content,

@@ -83,8 +83,8 @@ func (f *FileValidatorFactory) createMarkdownValidator(
 	return ValidatorWithPredicate{
 		Validator: filevalidators.NewMarkdownValidator(cfg, linter, f.log),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
+			validator.ToolTypeIn(hook.ToolTypeWrite, hook.ToolTypeEdit, hook.ToolTypeMultiEdit),
 			validator.FileExtensionIs(".md"),
 		),
 	}
@@ -98,8 +98,8 @@ func (f *FileValidatorFactory) createTerraformValidator(
 	return ValidatorWithPredicate{
 		Validator: filevalidators.NewTerraformValidator(formatter, linter, f.log, cfg),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
+			validator.ToolTypeIn(hook.ToolTypeWrite, hook.ToolTypeEdit, hook.ToolTypeMultiEdit),
 			validator.FileExtensionIs(".tf"),
 		),
 	}
@@ -112,8 +112,8 @@ func (f *FileValidatorFactory) createShellScriptValidator(
 	return ValidatorWithPredicate{
 		Validator: filevalidators.NewShellScriptValidator(f.log, checker, cfg),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
+			validator.ToolTypeIn(hook.ToolTypeWrite, hook.ToolTypeEdit, hook.ToolTypeMultiEdit),
 			validator.Or(
 				validator.FileExtensionIs(".sh"),
 				validator.FileExtensionIs(".bash"),
@@ -130,8 +130,8 @@ func (f *FileValidatorFactory) createWorkflowValidator(
 	return ValidatorWithPredicate{
 		Validator: filevalidators.NewWorkflowValidator(linter, githubClient, f.log, cfg),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIn(hook.Write, hook.Edit, hook.MultiEdit),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
+			validator.ToolTypeIn(hook.ToolTypeWrite, hook.ToolTypeEdit, hook.ToolTypeMultiEdit),
 			validator.Or(
 				validator.FilePathContains(".github/workflows/"),
 				validator.FilePathContains(".github/actions/"),

@@ -99,10 +99,10 @@ func run(_ *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to create logger: %w", err)
 	}
 
-	// Determine event type
-	eventType := hook.EventType(hookType)
-	if eventType == "" {
-		eventType = hook.PreToolUse // Default to PreToolUse
+	// Determine event type using enumer-generated function
+	eventType, err := hook.EventTypeString(hookType)
+	if err != nil {
+		eventType = hook.EventTypePreToolUse // Default to PreToolUse
 	}
 
 	log.Info("hook invoked",

@@ -26,8 +26,8 @@ var _ = Describe("MarkdownValidator", func() {
 		linter := linters.NewMarkdownLinter(runner)
 		v = file.NewMarkdownValidator(nil, linter, logger.NewNoOpLogger())
 		ctx = &hook.Context{
-			EventType: hook.PreToolUse,
-			ToolName:  hook.Write,
+			EventType: hook.EventTypePreToolUse,
+			ToolName:  hook.ToolTypeWrite,
 		}
 	})
 
@@ -293,7 +293,7 @@ Text
 
 		Context("edge cases", func() {
 			It("skips validation for Edit operations", func() {
-				ctx.ToolName = hook.Edit
+				ctx.ToolName = hook.ToolTypeEdit
 				ctx.ToolInput.FilePath = "/path/to/file.md"
 				ctx.ToolInput.Content = ""
 				result := v.Validate(context.Background(), ctx)

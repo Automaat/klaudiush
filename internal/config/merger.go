@@ -497,7 +497,7 @@ func (*Merger) mergeBaseConfig(dst, src *config.ValidatorConfig) {
 		dst.Enabled = src.Enabled
 	}
 
-	if src.Severity != "" {
+	if src.Severity != config.SeverityUnknown {
 		dst.Severity = src.Severity
 	}
 }

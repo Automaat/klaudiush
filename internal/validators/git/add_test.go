@@ -34,8 +34,8 @@ var _ = Describe("GitAddValidator", func() {
 		Context("when adding tmp/ files", func() {
 			It("should block adding a single tmp/ file", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add tmp/test.txt",
 					},
@@ -53,8 +53,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should block adding multiple tmp/ files", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add tmp/file1.txt tmp/file2.txt",
 					},
@@ -71,8 +71,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should block tmp/ files in chained commands", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add src/main.go && git add tmp/test.sh",
 					},
@@ -88,8 +88,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should block tmp/ files with nested paths", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add tmp/nested/deep/file.txt",
 					},
@@ -107,8 +107,8 @@ var _ = Describe("GitAddValidator", func() {
 		Context("when adding non-tmp/ files", func() {
 			It("should allow adding regular files", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add src/main.go",
 					},
@@ -122,8 +122,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should allow adding multiple regular files", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add src/main.go pkg/parser/bash.go",
 					},
@@ -136,8 +136,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should allow adding with flags", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add -A src/main.go",
 					},
@@ -150,8 +150,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should allow adding files that contain 'tmp' but don't start with tmp/", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add src/temporary.go",
 					},
@@ -164,8 +164,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should allow adding current directory", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add .",
 					},
@@ -178,8 +178,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should allow adding all files with -A flag", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add -A",
 					},
@@ -194,8 +194,8 @@ var _ = Describe("GitAddValidator", func() {
 		Context("when handling flags", func() {
 			It("should ignore --chmod flag and its value", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add --chmod=+x src/script.sh",
 					},
@@ -208,8 +208,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should not treat flags as files", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add -p -u src/main.go",
 					},
@@ -224,8 +224,8 @@ var _ = Describe("GitAddValidator", func() {
 		Context("when command is not git add", func() {
 			It("should pass for git commit commands", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git commit -m 'test'",
 					},
@@ -238,8 +238,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should pass for non-git commands", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "echo test",
 					},
@@ -254,8 +254,8 @@ var _ = Describe("GitAddValidator", func() {
 		Context("when command has complex syntax", func() {
 			It("should handle quoted file paths", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git add "tmp/file with spaces.txt"`,
 					},
@@ -269,8 +269,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should handle subshells", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "(cd subdir && git add tmp/test.txt)",
 					},
@@ -284,8 +284,8 @@ var _ = Describe("GitAddValidator", func() {
 
 			It("should handle command chains with ||", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: "git add tmp/file.txt || echo failed",
 					},

@@ -36,6 +36,6 @@ func (f *NotificationValidatorFactory) createBellValidator(
 ) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
 		Validator: notificationvalidators.NewBellValidator(f.log, cfg),
-		Predicate: validator.EventTypeIs(hook.Notification),
+		Predicate: validator.EventTypeIs(hook.EventTypeNotification),
 	}
 }

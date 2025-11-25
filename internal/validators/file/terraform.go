@@ -116,7 +116,7 @@ func (v *TerraformValidator) getContent(ctx *hook.Context) (string, error) {
 
 	// For Edit operations in PreToolUse, validate only the changed fragment with context
 	// to avoid forcing users to fix all existing linting issues
-	if ctx.EventType == hook.PreToolUse && ctx.ToolName == hook.Edit {
+	if ctx.EventType == hook.EventTypePreToolUse && ctx.ToolName == hook.ToolTypeEdit {
 		filePath := ctx.GetFilePath()
 		if filePath == "" {
 			return "", errNoContent

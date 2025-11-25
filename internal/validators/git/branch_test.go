@@ -20,8 +20,8 @@ var _ = Describe("BranchValidator", func() {
 	BeforeEach(func() {
 		v = git.NewBranchValidator(nil, logger.NewNoOpLogger())
 		ctx = &hook.Context{
-			EventType: hook.PreToolUse,
-			ToolName:  hook.Bash,
+			EventType: hook.EventTypePreToolUse,
+			ToolName:  hook.ToolTypeBash,
 			ToolInput: hook.ToolInput{},
 		}
 	})

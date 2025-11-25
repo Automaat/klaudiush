@@ -29,8 +29,8 @@ var _ = Describe("PushValidator", func() {
 	// Helper function to create context with command
 	createContext := func(command string) *hook.Context {
 		return &hook.Context{
-			EventType: hook.PreToolUse,
-			ToolName:  hook.Bash,
+			EventType: hook.EventTypePreToolUse,
+			ToolName:  hook.ToolTypeBash,
 			ToolInput: hook.ToolInput{
 				Command: command,
 			},

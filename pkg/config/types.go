@@ -4,9 +4,10 @@ package config
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 )
+
+//go:generate enumer -type=Severity -trimprefix=Severity -transform=lower -json -text -yaml -sql
 
 var (
 	// ErrInvalidSeverity is returned when an invalid severity value is provided.
@@ -17,25 +18,18 @@ var (
 )
 
 // Severity represents the severity level of a validation failure.
-type Severity string
+type Severity int
 
 const (
+	// SeverityUnknown represents an unknown severity level.
+	SeverityUnknown Severity = iota
+
 	// SeverityError indicates a validation failure that blocks the operation.
-	SeverityError Severity = "error"
+	SeverityError
 
 	// SeverityWarning indicates a validation failure that only warns without blocking.
-	SeverityWarning Severity = "warning"
+	SeverityWarning
 )
-
-// String returns the string representation of the severity.
-func (s Severity) String() string {
-	return string(s)
-}
-
-// IsValid checks if the severity is valid.
-func (s Severity) IsValid() bool {
-	return s == SeverityError || s == SeverityWarning
-}
 
 // ShouldBlock returns true if the severity should block the operation.
 func (s Severity) ShouldBlock() bool {
@@ -44,15 +38,15 @@ func (s Severity) ShouldBlock() bool {
 
 // ParseSeverity parses a string into a Severity value.
 func ParseSeverity(s string) (Severity, error) {
-	severity := Severity(strings.ToLower(s))
-	if !severity.IsValid() {
-		return "",
+	severity, err := SeverityString(s)
+	if err != nil {
+		return SeverityUnknown,
 			fmt.Errorf(
 				"%w: %q, must be %q or %q",
 				ErrInvalidSeverity,
 				s,
-				SeverityError,
-				SeverityWarning,
+				SeverityError.String(),
+				SeverityWarning.String(),
 			)
 	}
 

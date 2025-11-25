@@ -437,13 +437,13 @@ func (v *Validator) validateWorkflowConfig(cfg *config.WorkflowValidatorConfig) 
 
 // validateBaseConfig validates the base validator configuration.
 func (*Validator) validateBaseConfig(cfg *config.ValidatorConfig) error {
-	if cfg.Severity != "" && !cfg.Severity.IsValid() {
+	if cfg.Severity != config.SeverityUnknown && !cfg.Severity.IsASeverity() {
 		return fmt.Errorf(
 			"%w: must be %q or %q, got %q",
 			ErrInvalidSeverity,
-			config.SeverityError,
-			config.SeverityWarning,
-			cfg.Severity,
+			config.SeverityError.String(),
+			config.SeverityWarning.String(),
+			cfg.Severity.String(),
 		)
 	}
 

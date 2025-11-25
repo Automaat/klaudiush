@@ -24,8 +24,8 @@ var _ = Describe("NoVerifyValidator", func() {
 
 	createContext := func(command string) *hook.Context {
 		return &hook.Context{
-			EventType: hook.PreToolUse,
-			ToolName:  hook.Bash,
+			EventType: hook.EventTypePreToolUse,
+			ToolName:  hook.ToolTypeBash,
 			ToolInput: hook.ToolInput{
 				Command: command,
 			},

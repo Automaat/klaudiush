@@ -189,7 +189,7 @@ func (v *WorkflowValidator) getContent(ctx *hook.Context) (string, error) {
 	}
 
 	// For Edit operations in PreToolUse, read file and apply edit
-	if ctx.EventType == hook.PreToolUse && ctx.ToolName == hook.Edit {
+	if ctx.EventType == hook.EventTypePreToolUse && ctx.ToolName == hook.ToolTypeEdit {
 		filePath := ctx.GetFilePath()
 		if filePath == "" {
 			return "", errNoContent
@@ -220,7 +220,7 @@ func (v *WorkflowValidator) getContent(ctx *hook.Context) (string, error) {
 
 	// Try to get from file path (Edit or PostToolUse)
 	filePath := ctx.GetFilePath()
-	if filePath != "" && ctx.EventType == hook.PostToolUse {
+	if filePath != "" && ctx.EventType == hook.EventTypePostToolUse {
 		// In PostToolUse, we could read the file
 		//nolint:gosec // filePath is from Claude Code tool context, not user input
 		content, err := os.ReadFile(filePath)

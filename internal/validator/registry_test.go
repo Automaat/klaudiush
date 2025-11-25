@@ -12,7 +12,7 @@ var _ = Describe("Git Predicates", func() {
 	Describe("GitSubcommandIs", func() {
 		It("matches git checkout command", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git checkout main"},
 			}
 
@@ -22,7 +22,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("matches git checkout with -C global option", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git -C /path/to/repo checkout main"},
 			}
 
@@ -32,7 +32,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("matches git checkout with long path in -C option", func() {
 			ctx := &hook.Context{
-				ToolName: hook.Bash,
+				ToolName: hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git -C /Users/test/Projects/github.com/org/repo checkout -b feature",
 				},
@@ -44,7 +44,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match different subcommand", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git commit -m 'test'"},
 			}
 
@@ -54,7 +54,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match non-git command", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "ls -la"},
 			}
 
@@ -64,7 +64,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match non-Bash tool", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Write,
+				ToolName:  hook.ToolTypeWrite,
 				ToolInput: hook.ToolInput{Command: "git checkout main"},
 			}
 
@@ -76,7 +76,7 @@ var _ = Describe("Git Predicates", func() {
 	Describe("GitSubcommandIn", func() {
 		It("matches any of the specified subcommands", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git -C /repo checkout -b feature"},
 			}
 
@@ -86,7 +86,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match unlisted subcommand", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git commit -m 'test'"},
 			}
 
@@ -98,7 +98,7 @@ var _ = Describe("Git Predicates", func() {
 	Describe("GitHasFlag", func() {
 		It("matches flag in command", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git checkout -b feature"},
 			}
 
@@ -108,7 +108,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("matches flag with -C global option", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git -C /path/to/repo checkout -b feature"},
 			}
 
@@ -118,7 +118,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match missing flag", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git checkout main"},
 			}
 
@@ -130,7 +130,7 @@ var _ = Describe("Git Predicates", func() {
 	Describe("GitHasAnyFlag", func() {
 		It("matches any of the specified flags", func() {
 			ctx := &hook.Context{
-				ToolName: hook.Bash,
+				ToolName: hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git -C /repo checkout -b feature upstream/main",
 				},
@@ -142,7 +142,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("matches long flag variant", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git checkout --branch feature"},
 			}
 
@@ -152,7 +152,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match when none of the flags are present", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git checkout main"},
 			}
 
@@ -164,7 +164,7 @@ var _ = Describe("Git Predicates", func() {
 	Describe("GitSubcommandWithFlag", func() {
 		It("matches subcommand with specific flag", func() {
 			ctx := &hook.Context{
-				ToolName: hook.Bash,
+				ToolName: hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git -C /repo checkout -b feature upstream/main",
 				},
@@ -176,7 +176,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match subcommand without flag", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git checkout main"},
 			}
 
@@ -186,7 +186,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match different subcommand with flag", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git commit -m 'test'"},
 			}
 
@@ -198,7 +198,7 @@ var _ = Describe("Git Predicates", func() {
 	Describe("GitSubcommandWithAnyFlag", func() {
 		It("matches checkout with -b flag", func() {
 			ctx := &hook.Context{
-				ToolName: hook.Bash,
+				ToolName: hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git -C /path/to/repo checkout -b feature upstream/main",
 				},
@@ -210,7 +210,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("matches switch with -c flag", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git switch -c feature"},
 			}
 
@@ -226,7 +226,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match checkout without branch creation flag", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git -C /repo checkout main"},
 			}
 
@@ -238,7 +238,7 @@ var _ = Describe("Git Predicates", func() {
 	Describe("GitSubcommandWithoutAnyFlag", func() {
 		It("matches branch without delete flags", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git -C /repo branch new-feature"},
 			}
 
@@ -248,7 +248,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match branch with delete flag", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git branch -d old-feature"},
 			}
 
@@ -258,7 +258,7 @@ var _ = Describe("Git Predicates", func() {
 
 		It("does not match branch with -D flag", func() {
 			ctx := &hook.Context{
-				ToolName:  hook.Bash,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{Command: "git -C /repo branch -D old-feature"},
 			}
 
@@ -270,8 +270,8 @@ var _ = Describe("Git Predicates", func() {
 	Describe("Real-world scenarios", func() {
 		It("matches the original failing case: git -C with long path checkout -b", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git -C /Users/bart.smykla@konghq.com/Projects/github.com/kong/kong-mesh checkout -b revert-mink-workflow-dispatch upstream/master",
 				},
@@ -279,7 +279,7 @@ var _ = Describe("Git Predicates", func() {
 
 			// This is the predicate used by the branch validator
 			predicate := validator.And(
-				validator.EventTypeIs(hook.PreToolUse),
+				validator.EventTypeIs(hook.EventTypePreToolUse),
 				validator.Or(
 					validator.GitSubcommandWithAnyFlag("checkout", "-b", "--branch"),
 					validator.GitSubcommandWithAnyFlag(
@@ -298,15 +298,15 @@ var _ = Describe("Git Predicates", func() {
 
 		It("matches git commit with -C path", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git -C /path/to/repo commit -sS -m 'feat: add feature'",
 				},
 			}
 
 			predicate := validator.And(
-				validator.EventTypeIs(hook.PreToolUse),
+				validator.EventTypeIs(hook.EventTypePreToolUse),
 				validator.GitSubcommandIs("commit"),
 			)
 
@@ -315,15 +315,15 @@ var _ = Describe("Git Predicates", func() {
 
 		It("matches git push with --git-dir option", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: "git --git-dir=/custom/.git push origin main",
 				},
 			}
 
 			predicate := validator.And(
-				validator.EventTypeIs(hook.PreToolUse),
+				validator.EventTypeIs(hook.EventTypePreToolUse),
 				validator.GitSubcommandIs("push"),
 			)
 

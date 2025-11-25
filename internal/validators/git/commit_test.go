@@ -31,8 +31,8 @@ var _ = Describe("CommitValidator", func() {
 		Context("when -sS flags are present", func() {
 			It("should pass with -sS flags", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(api): add new feature"`,
 					},
@@ -44,8 +44,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should pass with -s and -S separately", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -s -S -m "fix(auth): resolve bug"`,
 					},
@@ -57,8 +57,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should pass with long flags", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit --signoff --gpg-sign -m "docs(readme): update readme"`,
 					},
@@ -74,8 +74,8 @@ var _ = Describe("CommitValidator", func() {
 				mockGit.ModifiedFiles = []string{"file1.go", "file2.go"}
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS --all -m "feat(files): update files"`,
 					},
@@ -89,8 +89,8 @@ var _ = Describe("CommitValidator", func() {
 		Context("when -sS flags are missing", func() {
 			It("should fail without -s flag", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -S -m "feat(test): test message"`,
 					},
@@ -103,8 +103,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail without -S flag", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -s -m "feat(test): test message"`,
 					},
@@ -117,8 +117,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail without any signing flags", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -m "feat(test): test message"`,
 					},
@@ -135,8 +135,8 @@ var _ = Describe("CommitValidator", func() {
 		Context("when message is valid", func() {
 			It("should pass with valid conventional commit", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(api): add new endpoint"`,
 					},
@@ -148,8 +148,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should pass with scope", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "fix(auth): resolve login issue"`,
 					},
@@ -161,8 +161,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail without scope", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "chore: update dependencies"`,
 					},
@@ -175,8 +175,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should pass with breaking change marker", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(api)!: remove deprecated API"`,
 					},
@@ -191,8 +191,8 @@ var _ = Describe("CommitValidator", func() {
 			It("should fail with title over 50 characters", func() {
 				longTitle := "feat(api): this is a very long commit message that exceeds the fifty character limit"
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + longTitle + `"`,
 					},
@@ -206,8 +206,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail with non-conventional format", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "Add new feature"`,
 					},
@@ -222,8 +222,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail with invalid type", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "invalid(api): add endpoint"`,
 					},
@@ -240,8 +240,8 @@ var _ = Describe("CommitValidator", func() {
 		Context("when infrastructure scope is misused", func() {
 			It("should fail with feat(ci)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(ci): add new workflow"`,
 					},
@@ -256,8 +256,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail with fix(test)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "fix(test): update test helper"`,
 					},
@@ -272,8 +272,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail with feat(docs)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(docs): add new section"`,
 					},
@@ -288,8 +288,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail with fix(build)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "fix(build): update makefile"`,
 					},
@@ -304,8 +304,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should pass with ci(workflow)", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "ci(workflow): add new step"`,
 					},
@@ -319,8 +319,8 @@ var _ = Describe("CommitValidator", func() {
 		Context("when commit is a revert", func() {
 			It("should pass with git revert format using double quotes", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m 'Revert "feat(api): add new endpoint"'`,
 					},
@@ -332,8 +332,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should pass with git revert format using single quotes", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "Revert 'fix(auth): resolve login issue'"`,
 					},
@@ -345,8 +345,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should pass with revert of non-conventional commit", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m 'Revert "Add new feature"'`,
 					},
@@ -358,8 +358,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail with revert title over 50 characters", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m 'Revert "feat(api): this is a very long commit message title"'`,
 					},
@@ -372,8 +372,8 @@ var _ = Describe("CommitValidator", func() {
 
 			It("should fail without quotes around original message", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "Revert feat(api): add endpoint"`,
 					},
@@ -395,8 +395,8 @@ This is a normal commit body with lines that are well within the
 seventy-two character limit for proper formatting.`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -412,8 +412,8 @@ seventy-two character limit for proper formatting.`
 Reference: https://github.com/smykla-labs/klaudiush/pull/123/files#diff-abc123def456`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -431,8 +431,8 @@ Reference: https://github.com/smykla-labs/klaudiush/pull/123/files#diff-abc123de
 This is a line that definitely exceeds the seventy-two character limit and even the tolerance of seventy-seven characters total`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -454,8 +454,8 @@ Changes:
 - Update documentation`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -471,8 +471,8 @@ Changes:
 - Update documentation`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -491,8 +491,8 @@ Changes:
 2. Second item`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -509,8 +509,8 @@ Changes:
 		Context("when message contains PR references", func() {
 			It("should fail with #123 reference", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "fix(api): resolve issue #123"`,
 					},
@@ -528,8 +528,8 @@ Changes:
 See github.com/smykla-labs/klaudiush/pull/123`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -542,8 +542,8 @@ See github.com/smykla-labs/klaudiush/pull/123`
 
 			It("should pass with plain number", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "fix(api): resolve issue 123"`,
 					},
@@ -557,8 +557,8 @@ See github.com/smykla-labs/klaudiush/pull/123`
 		Context("when message contains AI attribution", func() {
 			It("should fail with AI attribution footer", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(api): add endpoint\\n\\nGenerated by Claude"`,
 					},
@@ -571,8 +571,8 @@ See github.com/smykla-labs/klaudiush/pull/123`
 
 			It("should allow 'claude' in technical context", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(integration): add claude integration"`,
 					},
@@ -584,8 +584,8 @@ See github.com/smykla-labs/klaudiush/pull/123`
 
 			It("should fail with 'Claude AI' pattern", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(api): add feature\\n\\nWith Claude AI assistance"`,
 					},
@@ -598,8 +598,8 @@ See github.com/smykla-labs/klaudiush/pull/123`
 
 			It("should pass with CLAUDE.md file reference", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "docs(guide): add CLAUDE.md"`,
 					},
@@ -611,8 +611,8 @@ See github.com/smykla-labs/klaudiush/pull/123`
 
 			It("should pass with CLAUDE.md in body", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "$(cat <<'EOF'
 docs(guide): update project guide
@@ -629,8 +629,8 @@ EOF
 
 			It("should pass with CLAUDE (uppercase) reference", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "docs(guide): update CLAUDE file"`,
 					},
@@ -642,8 +642,8 @@ EOF
 
 			It("should fail with 'Generated with Claude' markdown link", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "$(cat <<'EOF'
 chore(styles): add duplicate btn-radius definition
@@ -661,8 +661,8 @@ EOF
 
 			It("should fail with Co-Authored-By: Claude", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "$(cat <<'EOF'
 chore(styles): add duplicate btn-radius definition
@@ -680,8 +680,8 @@ EOF
 
 			It("should fail with 'generated with claude' pattern", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(api): add endpoint\\n\\nGenerated with Claude assistance"`,
 					},
@@ -694,8 +694,8 @@ EOF
 
 			It("should fail with full Claude Code attribution footer", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "$(cat <<'EOF'
 chore(styles): add duplicate btn-radius definition
@@ -717,8 +717,8 @@ EOF
 		Context("when message contains forbidden patterns", func() {
 			It("should fail with tmp/ directory reference", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(api): add temp storage in tmp/"`,
 					},
@@ -732,8 +732,8 @@ EOF
 
 			It("should fail with standalone tmp word", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(storage): store files in tmp directory"`,
 					},
@@ -747,8 +747,8 @@ EOF
 
 			It("should pass when tmp is part of a longer word", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "feat(template): add new template file"`,
 					},
@@ -760,8 +760,8 @@ EOF
 
 			It("should fail with tmp in commit body", func() {
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "$(cat <<'EOF'
 feat(storage): add file storage
@@ -786,8 +786,8 @@ EOF
 Signed-off-by: Test User <test@example.com>`
 
 				ctx := &hook.Context{
-					EventType: hook.PreToolUse,
-					ToolName:  hook.Bash,
+					EventType: hook.EventTypePreToolUse,
+					ToolName:  hook.ToolTypeBash,
 					ToolInput: hook.ToolInput{
 						Command: `git commit -sS -a -m "` + message + `"`,
 					},
@@ -821,8 +821,8 @@ Signed-off-by: Test User <test@example.com>`
 			file.Close()
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit -sS -a -F ` + tmpFile,
 				},
@@ -842,8 +842,8 @@ Signed-off-by: Test User <test@example.com>`
 			file.Close()
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit -sS -a --file ` + tmpFile,
 				},
@@ -863,8 +863,8 @@ Signed-off-by: Test User <test@example.com>`
 			file.Close()
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit -sS -a -F ` + tmpFile,
 				},
@@ -879,8 +879,8 @@ Signed-off-by: Test User <test@example.com>`
 
 		It("should fail when file does not exist", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit -sS -a -F /nonexistent/file.txt`,
 				},
@@ -898,8 +898,8 @@ Signed-off-by: Test User <test@example.com>`
 			file.Close()
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit -sS -a -F ` + tmpFile,
 				},
@@ -919,8 +919,8 @@ Signed-off-by: Test User <test@example.com>`
 			file.Close()
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit -sSF ` + tmpFile,
 				},
@@ -934,8 +934,8 @@ Signed-off-by: Test User <test@example.com>`
 	Describe("No message flag", func() {
 		It("should pass when no -m flag (message from editor)", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit -sS`,
 				},
@@ -949,8 +949,8 @@ Signed-off-by: Test User <test@example.com>`
 	Describe("Non-git commands", func() {
 		It("should pass for non-git commands", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `echo hello`,
 				},
@@ -962,8 +962,8 @@ Signed-off-by: Test User <test@example.com>`
 
 		It("should pass for non-commit git commands", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git status`,
 				},
@@ -977,8 +977,8 @@ Signed-off-by: Test User <test@example.com>`
 	Describe("Chained commands", func() {
 		It("should validate git commit in chain", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git add file.txt && git commit -sS -a -m "feat(file): add file"`,
 				},
@@ -990,8 +990,8 @@ Signed-off-by: Test User <test@example.com>`
 
 		It("should fail with invalid message in chain", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git add file.txt && git commit -sS -a -m "Add file"`,
 				},
@@ -1008,8 +1008,8 @@ Signed-off-by: Test User <test@example.com>`
 			mockGit.StagedFiles = []string{}
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git add file.txt && git commit -sS -m "feat(file): add file"`,
 				},
@@ -1023,8 +1023,8 @@ Signed-off-by: Test User <test@example.com>`
 			mockGit.StagedFiles = []string{}
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git add mk/check.mk src/main.go && git commit -sS -m "build(makefile): add targets"`,
 				},
@@ -1038,8 +1038,8 @@ Signed-off-by: Test User <test@example.com>`
 			mockGit.StagedFiles = []string{}
 
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git add -A && git commit -sS -m "chore(deps): update all"`,
 				},
@@ -1053,8 +1053,8 @@ Signed-off-by: Test User <test@example.com>`
 	Describe("Amend and allow-empty flags", func() {
 		It("should skip staging check with --amend", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit --amend -sS -m "feat(api): amend commit"`,
 				},
@@ -1066,8 +1066,8 @@ Signed-off-by: Test User <test@example.com>`
 
 		It("should skip staging check with --allow-empty", func() {
 			ctx := &hook.Context{
-				EventType: hook.PreToolUse,
-				ToolName:  hook.Bash,
+				EventType: hook.EventTypePreToolUse,
+				ToolName:  hook.ToolTypeBash,
 				ToolInput: hook.ToolInput{
 					Command: `git commit --allow-empty -sS -m "chore(deps): empty commit"`,
 				},

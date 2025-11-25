@@ -338,8 +338,10 @@ func loadValidatorBaseEnvVars(prefix string, getValidator func() *pkgconfig.Vali
 
 	// Severity
 	if val := os.Getenv(prefix + "_SEVERITY"); val != "" {
-		validator := getValidator()
-		validator.Severity = pkgconfig.Severity(val)
+		if severity, err := pkgconfig.SeverityString(val); err == nil {
+			validator := getValidator()
+			validator.Severity = severity
+		}
 	}
 
 	return nil

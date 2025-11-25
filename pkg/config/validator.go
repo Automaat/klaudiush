@@ -26,7 +26,7 @@ func (c *ValidatorConfig) IsEnabled() bool {
 
 // GetSeverity returns the severity level, defaulting to Error if not set.
 func (c *ValidatorConfig) GetSeverity() Severity {
-	if c.Severity == "" {
+	if c.Severity == SeverityUnknown {
 		return SeverityError
 	}
 

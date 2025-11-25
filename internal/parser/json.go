@@ -61,8 +61,8 @@ func (p *JSONParser) Parse(eventType hook.EventType) (*hook.Context, error) {
 	// Parse JSON
 	var input JSONInput
 
-	if err := json.Unmarshal(jsonBytes, &input); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidJSON, err)
+	if unmarshalErr := json.Unmarshal(jsonBytes, &input); unmarshalErr != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidJSON, unmarshalErr)
 	}
 
 	// Extract tool name
@@ -75,7 +75,7 @@ func (p *JSONParser) Parse(eventType hook.EventType) (*hook.Context, error) {
 	var toolInput hook.ToolInput
 
 	if len(input.ToolInput) > 0 {
-		if err := json.Unmarshal(input.ToolInput, &toolInput); err != nil {
+		if unmarshalErr := json.Unmarshal(input.ToolInput, &toolInput); unmarshalErr != nil {
 			// If tool_input fails to parse, try extracting command directly
 			toolInput.Command = input.Command
 		}
@@ -84,9 +84,16 @@ func (p *JSONParser) Parse(eventType hook.EventType) (*hook.Context, error) {
 		toolInput.Command = input.Command
 	}
 
+	// Parse tool type from string using enumer-generated function
+	parsedToolType, parseErr := hook.ToolTypeString(toolName)
+	if parseErr != nil {
+		// Unknown tool type - use ToolTypeUnknown to allow pass-through
+		parsedToolType = hook.ToolTypeUnknown
+	}
+
 	ctx := &hook.Context{
 		EventType:        eventType,
-		ToolName:         hook.ToolType(toolName),
+		ToolName:         parsedToolType,
 		ToolInput:        toolInput,
 		NotificationType: input.NotificationType,
 		RawJSON:          string(jsonBytes),

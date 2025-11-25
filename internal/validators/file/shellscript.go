@@ -89,7 +89,7 @@ func (v *ShellScriptValidator) getContent(ctx *hook.Context, filePath string) (s
 	log := v.Logger()
 
 	// For Edit operations, validate only the changed fragment with context
-	if ctx.EventType == hook.PreToolUse && ctx.ToolName == hook.Edit {
+	if ctx.EventType == hook.EventTypePreToolUse && ctx.ToolName == hook.ToolTypeEdit {
 		return v.getEditContent(ctx, filePath)
 	}
 

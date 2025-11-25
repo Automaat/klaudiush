@@ -58,7 +58,7 @@ func (f *GitValidatorFactory) createAddValidator(
 	return ValidatorWithPredicate{
 		Validator: gitvalidators.NewAddValidator(f.log, nil, cfg),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("add"),
 		),
 	}
@@ -70,7 +70,7 @@ func (f *GitValidatorFactory) createNoVerifyValidator(
 	return ValidatorWithPredicate{
 		Validator: gitvalidators.NewNoVerifyValidator(f.log, cfg),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("commit"),
 		),
 	}
@@ -82,7 +82,7 @@ func (f *GitValidatorFactory) createCommitValidator(
 	return ValidatorWithPredicate{
 		Validator: gitvalidators.NewCommitValidator(f.log, nil, cfg),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("commit"),
 		),
 	}
@@ -94,7 +94,7 @@ func (f *GitValidatorFactory) createPushValidator(
 	return ValidatorWithPredicate{
 		Validator: gitvalidators.NewPushValidator(f.log, nil, cfg),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("push"),
 		),
 	}
@@ -106,8 +106,8 @@ func (f *GitValidatorFactory) createPRValidator(
 	return ValidatorWithPredicate{
 		Validator: gitvalidators.NewPRValidator(cfg, f.log),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
-			validator.ToolTypeIs(hook.Bash),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
+			validator.ToolTypeIs(hook.ToolTypeBash),
 			validator.CommandContains("gh pr create"),
 		),
 	}
@@ -119,7 +119,7 @@ func (f *GitValidatorFactory) createBranchValidator(
 	return ValidatorWithPredicate{
 		Validator: gitvalidators.NewBranchValidator(cfg, f.log),
 		Predicate: validator.And(
-			validator.EventTypeIs(hook.PreToolUse),
+			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.Or(
 				// git checkout -b or --branch (create new branch)
 				validator.GitSubcommandWithAnyFlag("checkout", "-b", "--branch"),
