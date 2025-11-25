@@ -48,6 +48,9 @@ var rootCmd = &cobra.Command{
 	Short: "Claude Code hooks validator",
 	Long: `Claude Code hooks validator - validates tool invocations and file operations
 before they are executed by Claude Code.`,
+	PersistentPreRun: func(_ *cobra.Command, _ []string) {
+		checkVersionFlag()
+	},
 	RunE: run,
 }
 

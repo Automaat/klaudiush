@@ -17,16 +17,29 @@ Klaudiush is a Go-based validation system that runs as a PreToolUse hook in Clau
 
 ## Installation
 
-### Build and Install
+### Quick Install (Recommended)
 
 ```bash
-# Build the binary (development build, no signoff validation)
+# Install latest release
+curl -sSfL https://raw.githubusercontent.com/smykla-labs/klaudiush/main/install.sh | sh
+
+# Install specific version
+curl -sSfL https://raw.githubusercontent.com/smykla-labs/klaudiush/main/install.sh | sh -s -- -v v1.0.0
+
+# Install to custom directory
+curl -sSfL https://raw.githubusercontent.com/smykla-labs/klaudiush/main/install.sh | sh -s -- -b /usr/local/bin
+```
+
+### Build from Source
+
+```bash
+# Build the binary (development build)
 task build
 
-# Build with signoff validation (uses git config for expected signoff)
+# Build production binary
 task build:prod
 
-# Install to ~/.claude/hooks/
+# Install to ~/.local/bin or ~/bin
 task install
 ```
 
