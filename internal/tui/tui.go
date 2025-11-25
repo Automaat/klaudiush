@@ -1,0 +1,37 @@
+package tui
+
+import (
+	"os"
+
+	"github.com/mattn/go-isatty"
+)
+
+// New creates a new UI instance based on terminal capabilities.
+// If the terminal is interactive (TTY), it returns a HuhUI.
+// Otherwise, it returns a FallbackUI for non-interactive environments.
+//
+//nolint:ireturn // Factory function returns interface by design
+func New() UI {
+	if IsTerminal() {
+		return NewHuhUI()
+	}
+
+	return NewFallbackUI()
+}
+
+// NewWithFallback creates a UI instance with explicit fallback preference.
+// If noTUI is true, it returns a FallbackUI regardless of terminal capabilities.
+//
+//nolint:ireturn // Factory function returns interface by design
+func NewWithFallback(noTUI bool) UI {
+	if noTUI {
+		return NewFallbackUI()
+	}
+
+	return New()
+}
+
+// IsTerminal checks if stdin and stdout are connected to a terminal.
+func IsTerminal() bool {
+	return isatty.IsTerminal(os.Stdin.Fd()) && isatty.IsTerminal(os.Stdout.Fd())
+}

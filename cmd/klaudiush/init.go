@@ -11,14 +11,14 @@ import (
 
 	"github.com/smykla-labs/klaudiush/internal/config"
 	"github.com/smykla-labs/klaudiush/internal/git"
-	"github.com/smykla-labs/klaudiush/internal/initcmd"
-	"github.com/smykla-labs/klaudiush/internal/prompt"
+	"github.com/smykla-labs/klaudiush/internal/tui"
 	pkgConfig "github.com/smykla-labs/klaudiush/pkg/config"
 )
 
 var (
 	globalFlag bool
 	forceFlag  bool
+	noTUIFlag  bool
 )
 
 var initCmd = &cobra.Command{
@@ -33,7 +33,8 @@ The initialization process will prompt you to configure:
 - Git commit signoff (default: from git config user.name and user.email)
 - Whether to add the config file to .git/info/exclude (project-local only)
 
-Use --force to overwrite an existing configuration file.`,
+Use --force to overwrite an existing configuration file.
+Use --no-tui to use simple prompts instead of the interactive TUI.`,
 	RunE: runInit,
 }
 
@@ -55,10 +56,16 @@ func init() {
 		false,
 		"Overwrite existing configuration file",
 	)
+
+	initCmd.Flags().BoolVar(
+		&noTUIFlag,
+		"no-tui",
+		false,
+		"Use simple prompts instead of interactive TUI",
+	)
 }
 
 func runInit(_ *cobra.Command, _ []string) error {
-	prompter := prompt.NewStdPrompter()
 	writer := config.NewWriter()
 
 	// Check if config already exists
@@ -67,13 +74,23 @@ func runInit(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	// Display initialization message
-	displayInitHeader()
+	// Get default signoff from git config
+	defaultSignoff := getDefaultSignoff()
 
-	// Create and configure
-	cfg, err := promptConfigOptions(prompter)
+	// Determine if we should show git exclude option
+	showGitExclude := !globalFlag && git.IsInGitRepo()
+
+	// Create UI (TUI or fallback based on terminal capabilities and flags)
+	ui := tui.NewWithFallback(noTUIFlag)
+
+	// Run the init form
+	cfg, addToExclude, err := ui.RunInitForm(tui.InitFormOptions{
+		Global:         globalFlag,
+		DefaultSignoff: defaultSignoff,
+		ShowGitExclude: showGitExclude,
+	})
 	if err != nil {
-		return err
+		return errors.Wrap(err, "configuration form failed")
 	}
 
 	// Write configuration
@@ -82,8 +99,16 @@ func runInit(_ *cobra.Command, _ []string) error {
 	}
 
 	// Handle .git/info/exclude for project config
-	if err := handleGitExclude(prompter); err != nil {
-		return err
+	if addToExclude && showGitExclude {
+		if err := addConfigToExclude(); err != nil {
+			fmt.Fprintf(
+				os.Stderr,
+				"⚠️  Warning: failed to add to .git/info/exclude: %v\n",
+				err,
+			)
+		} else {
+			fmt.Println("✅ Added to .git/info/exclude")
+		}
 	}
 
 	fmt.Println()
@@ -117,49 +142,23 @@ func checkExistingConfig(writer *config.Writer) (string, error) {
 	return configPath, nil
 }
 
-// displayInitHeader displays the initialization header.
-func displayInitHeader() {
-	fmt.Println("╔═══════════════════════════════════════════════╗")
-
-	if globalFlag {
-		fmt.Println("║   Klaudiush Global Configuration Setup       ║")
-	} else {
-		fmt.Println("║   Klaudiush Project Configuration Setup      ║")
+// getDefaultSignoff gets the default signoff from git config.
+func getDefaultSignoff() string {
+	if !git.IsInGitRepo() {
+		return ""
 	}
 
-	fmt.Println("╚═══════════════════════════════════════════════╝")
-	fmt.Println()
-}
-
-// promptConfigOptions prompts for all available config options.
-func promptConfigOptions(prompter prompt.Prompter) (*pkgConfig.Config, error) {
-	cfg := &pkgConfig.Config{}
-
-	// Get all available configuration options
-	options := initcmd.GetDefaultOptions()
-
-	// Filter available options
-	var availableOptions []initcmd.ConfigOption
-
-	for _, opt := range options {
-		if opt.IsAvailable() {
-			availableOptions = append(availableOptions, opt)
-		}
+	cfgReader, err := git.NewConfigReader()
+	if err != nil {
+		return ""
 	}
 
-	// Prompt for each configuration option
-	for i, opt := range availableOptions {
-		if err := opt.Prompt(prompter, cfg); err != nil {
-			return nil, errors.Wrapf(err, "failed to configure %s", opt.Name())
-		}
-
-		// Add separator between options (except after last)
-		if i < len(availableOptions)-1 {
-			fmt.Println()
-		}
+	signoff, err := cfgReader.GetSignoff()
+	if err != nil {
+		return ""
 	}
 
-	return cfg, nil
+	return signoff
 }
 
 // writeConfig writes the configuration to the appropriate location.
@@ -175,39 +174,6 @@ func writeConfig(writer *config.Writer, cfg *pkgConfig.Config, configPath string
 	}
 
 	fmt.Printf("\n✅ Configuration written to: %s\n", configPath)
-
-	return nil
-}
-
-// handleGitExclude handles adding config to .git/info/exclude for project config.
-func handleGitExclude(prompter prompt.Prompter) error {
-	if globalFlag || !git.IsInGitRepo() {
-		return nil
-	}
-
-	fmt.Println()
-
-	addToExclude, err := prompter.Confirm(
-		"Add config file to .git/info/exclude?",
-		true,
-	)
-	if err != nil {
-		return errors.Wrap(err, "failed to read confirmation")
-	}
-
-	if !addToExclude {
-		return nil
-	}
-
-	if err := addConfigToExclude(); err != nil {
-		fmt.Fprintf(
-			os.Stderr,
-			"⚠️  Warning: failed to add to .git/info/exclude: %v\n",
-			err,
-		)
-	} else {
-		fmt.Println("✅ Added to .git/info/exclude")
-	}
 
 	return nil
 }
