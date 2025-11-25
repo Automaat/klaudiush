@@ -5,6 +5,12 @@ All notable changes to klaudiush will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2](https://github.com/smykla-labs/klaudiush/compare/v1.0.1...v1.0.2) (2025-11-25)
+
+### Bug Fixes
+
+* **deps:** update module github.com/charmbracelet/huh to v0.8.0 ([#7](https://github.com/smykla-labs/klaudiush/issues/7)) ([67d8f7c](https://github.com/smykla-labs/klaudiush/commit/67d8f7c78740f4591d6cb2c9900c7e7be87f1a33))
+
 ## [1.0.1](https://github.com/smykla-labs/klaudiush/compare/v1.0.0...v1.0.1) (2025-11-25)
 
 ### Bug Fixes
