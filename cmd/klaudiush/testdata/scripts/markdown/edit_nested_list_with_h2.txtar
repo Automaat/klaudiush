@@ -1,0 +1,42 @@
+# Test: Edit fragment with list inside h2 section passes validation
+# When editing markdown with nested list after h2 heading, the validator
+# should establish both heading context and list context
+# This tests combined heading + list preamble generation
+
+exec git init --initial-branch=main
+exec git config user.email "test@test.com"
+exec git config user.name "Test User"
+
+cp initial_doc.md doc.md
+exec git add doc.md
+
+stdin input.json
+exec klaudiush --hook-type PreToolUse
+! stderr 'MD001'
+! stderr 'MD007'
+
+-- initial_doc.md --
+# Project Plan
+
+## Implementation Checklist
+
+- [x] Phase 1 complete
+  - [x] Task 1.1
+  - [x] Task 1.2
+- [ ] Phase 2 in progress
+  - [ ] Task 2.1
+  - [ ] Task 2.2
+
+## Next Steps
+
+Content here.
+
+-- input.json --
+{
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "doc.md",
+    "old_string": "- [ ] Phase 2 in progress\n  - [ ] Task 2.1\n  - [ ] Task 2.2",
+    "new_string": "- [x] Phase 2 in progress\n  - [x] Task 2.1\n  - [x] Task 2.2"
+  }
+}

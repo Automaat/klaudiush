@@ -448,4 +448,272 @@ Some paragraph text.
 			})
 		})
 	})
+
+	Describe("Heading context detection", func() {
+		Context("LastHeadingLevel tracking", func() {
+			It("detects no heading level when no headings present", func() {
+				content := `Just some text.
+
+More text here.
+`
+				state := validators.DetectMarkdownState(content, 3)
+				Expect(state.LastHeadingLevel).To(Equal(0))
+			})
+
+			It("detects h1 heading level", func() {
+				content := `# Main Title
+
+Some content.
+`
+				state := validators.DetectMarkdownState(content, 3)
+				Expect(state.LastHeadingLevel).To(Equal(1))
+			})
+
+			It("detects h2 heading level", func() {
+				content := `# Main Title
+
+## Section
+
+Content here.
+`
+				state := validators.DetectMarkdownState(content, 5)
+				Expect(state.LastHeadingLevel).To(Equal(2))
+			})
+
+			It("detects h3 heading level", func() {
+				content := `# Main Title
+
+## Section
+
+### Subsection
+
+Content.
+`
+				state := validators.DetectMarkdownState(content, 7)
+				Expect(state.LastHeadingLevel).To(Equal(3))
+			})
+
+			It("tracks the last heading seen, not the first", func() {
+				content := `# Main Title
+
+## First Section
+
+### Subsection A
+
+## Second Section
+
+Content after second section.
+`
+				state := validators.DetectMarkdownState(content, 9)
+				Expect(state.LastHeadingLevel).To(Equal(2)) // ## Second Section
+			})
+
+			It("ignores headings inside code blocks", func() {
+				content := "# Main Title\n\n```markdown\n## This is inside code\n```\n\nText.\n"
+				state := validators.DetectMarkdownState(content, 7)
+				Expect(state.LastHeadingLevel).To(Equal(1)) // Still just h1 from outside code
+			})
+
+			It("detects h4 through h6 levels", func() {
+				content := `# H1
+
+## H2
+
+### H3
+
+#### H4
+
+Content here.
+`
+				state := validators.DetectMarkdownState(content, 9)
+				Expect(state.LastHeadingLevel).To(Equal(4))
+			})
+
+			It("caps heading level at 6", func() {
+				content := "####### Too many hashes\n\nContent.\n"
+				state := validators.DetectMarkdownState(content, 1)
+				// ######## is not a valid markdown heading, but if detected, cap at 6
+				// Actually, markdown spec says >6 hashes is NOT a heading
+				// Our isHeader regex should not match this
+				Expect(state.LastHeadingLevel).To(Equal(0))
+			})
+		})
+	})
+
+	Describe("GeneratePreamble", func() {
+		Context("with nil state", func() {
+			It("returns empty preamble", func() {
+				preamble, lines := validators.GeneratePreamble(nil)
+				Expect(preamble).To(BeEmpty())
+				Expect(lines).To(Equal(0))
+			})
+		})
+
+		Context("with StartLine=0", func() {
+			It("returns empty preamble (fragment starts at beginning)", func() {
+				state := &validators.MarkdownState{
+					StartLine: 0,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				Expect(preamble).To(BeEmpty())
+				Expect(lines).To(Equal(0))
+			})
+		})
+
+		Context("with StartLine>0 but no special context", func() {
+			It("returns basic h1 preamble", func() {
+				state := &validators.MarkdownState{
+					StartLine: 10,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				Expect(preamble).To(ContainSubstring("# Preamble"))
+				Expect(lines).To(Equal(2)) // header + blank line
+			})
+		})
+
+		Context("heading hierarchy generation", func() {
+			It("generates h1 for LastHeadingLevel=1", func() {
+				state := &validators.MarkdownState{
+					StartLine:        10,
+					LastHeadingLevel: 1,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				Expect(preamble).To(ContainSubstring("# Preamble H1"))
+				Expect(preamble).NotTo(ContainSubstring("## "))
+				Expect(lines).To(Equal(2)) // h1 + blank line
+			})
+
+			It("generates h1→h2 for LastHeadingLevel=2", func() {
+				state := &validators.MarkdownState{
+					StartLine:        10,
+					LastHeadingLevel: 2,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				Expect(preamble).To(ContainSubstring("# Preamble H1"))
+				Expect(preamble).To(ContainSubstring("## Preamble H2"))
+				Expect(lines).To(Equal(4)) // h1 + blank + h2 + blank
+			})
+
+			It("generates h1→h2→h3 for LastHeadingLevel=3", func() {
+				state := &validators.MarkdownState{
+					StartLine:        10,
+					LastHeadingLevel: 3,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				Expect(preamble).To(ContainSubstring("# Preamble H1"))
+				Expect(preamble).To(ContainSubstring("## Preamble H2"))
+				Expect(preamble).To(ContainSubstring("### Preamble H3"))
+				Expect(lines).To(Equal(6)) // 3 headings × 2 lines each
+			})
+
+			It("generates full hierarchy h1→h2→h3→h4 for LastHeadingLevel=4", func() {
+				state := &validators.MarkdownState{
+					StartLine:        10,
+					LastHeadingLevel: 4,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				Expect(preamble).To(ContainSubstring("# Preamble H1"))
+				Expect(preamble).To(ContainSubstring("## Preamble H2"))
+				Expect(preamble).To(ContainSubstring("### Preamble H3"))
+				Expect(preamble).To(ContainSubstring("#### Preamble H4"))
+				Expect(lines).To(Equal(8)) // 4 headings × 2 lines each
+			})
+		})
+
+		Context("combined heading and list context", func() {
+			It("generates heading hierarchy before list context", func() {
+				state := &validators.MarkdownState{
+					StartLine:        20,
+					LastHeadingLevel: 2,
+					InList:           true,
+					ListItemDepth:    1,
+					ListStack: []validators.ListItemInfo{
+						{MarkerIndent: 0, ContentIndent: 2, IsOrdered: false, Marker: "-"},
+					},
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+
+				// Should have heading hierarchy first
+				Expect(preamble).To(ContainSubstring("# Preamble H1"))
+				Expect(preamble).To(ContainSubstring("## Preamble H2"))
+
+				// Then list context
+				Expect(preamble).To(ContainSubstring("- Item"))
+				Expect(lines).To(BeNumerically(">", 4)) // headings + list item
+			})
+
+			It("generates heading hierarchy with ordered list", func() {
+				state := &validators.MarkdownState{
+					StartLine:        30,
+					LastHeadingLevel: 3,
+					InList:           true,
+					ListItemDepth:    1,
+					ListStack: []validators.ListItemInfo{
+						{
+							MarkerIndent:  0,
+							ContentIndent: 3,
+							IsOrdered:     true,
+							OrderNumber:   5,
+							Marker:        "5.",
+						},
+					},
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+
+				// Should have h1 → h2 → h3
+				Expect(preamble).To(ContainSubstring("# Preamble H1"))
+				Expect(preamble).To(ContainSubstring("## Preamble H2"))
+				Expect(preamble).To(ContainSubstring("### Preamble H3"))
+
+				// Then ordered list items 1-5
+				Expect(preamble).To(ContainSubstring("1. Item 1"))
+				Expect(preamble).To(ContainSubstring("5. Item 5"))
+				Expect(lines).To(BeNumerically(">", 6)) // 6 heading lines + 5 list items
+			})
+		})
+
+		Context("blank line handling", func() {
+			It("adds blank line when HadBlankLineBeforeFragment with no context", func() {
+				state := &validators.MarkdownState{
+					StartLine:                  10,
+					LastHeadingLevel:           0, // No heading context
+					InList:                     false,
+					HadBlankLineBeforeFragment: true,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				// Should end with extra blank line after basic preamble
+				Expect(preamble).To(HaveSuffix("\n\n"))
+				Expect(lines).To(Equal(3)) // header + blank + extra blank
+			})
+
+			It("does NOT add extra blank when heading context exists", func() {
+				// When we have heading context, the hierarchy already ends with a blank
+				// Adding HadBlankLineBeforeFragment would create consecutive blanks (MD012)
+				state := &validators.MarkdownState{
+					StartLine:                  10,
+					LastHeadingLevel:           2, // Has heading context
+					HadBlankLineBeforeFragment: true,
+				}
+				preamble, lines := validators.GeneratePreamble(state)
+				// Should NOT have consecutive blank lines
+				Expect(preamble).NotTo(ContainSubstring("\n\n\n"))
+				Expect(lines).To(Equal(4)) // h1 + blank + h2 + blank (no extra)
+			})
+
+			It("does NOT add extra blank when list context exists", func() {
+				state := &validators.MarkdownState{
+					StartLine:                  10,
+					InList:                     true,
+					ListItemDepth:              1,
+					HadBlankLineBeforeFragment: true,
+					ListStack: []validators.ListItemInfo{
+						{MarkerIndent: 0, ContentIndent: 2, IsOrdered: false, Marker: "-"},
+					},
+				}
+				preamble, _ := validators.GeneratePreamble(state)
+				// List context already provides proper spacing
+				Expect(preamble).NotTo(ContainSubstring("\n\n\n"))
+			})
+		})
+	})
 })

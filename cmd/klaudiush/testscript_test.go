@@ -78,3 +78,10 @@ func TestScriptDoctor(t *testing.T) {
 		Setup: setupTestEnv,
 	})
 }
+
+func TestScriptMarkdown(t *testing.T) {
+	testscript.Run(t, testscript.Params{
+		Dir:   "testdata/scripts/markdown",
+		Setup: setupTestEnv,
+	})
+}

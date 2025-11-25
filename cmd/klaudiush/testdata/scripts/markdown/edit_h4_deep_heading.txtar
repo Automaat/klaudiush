@@ -1,0 +1,47 @@
+# Test: Edit fragment starting with h4 heading passes validation
+# When editing markdown with #### heading, the validator should
+# establish full heading hierarchy context (h1 → h2 → h3 → h4)
+# This tests deep heading hierarchy preamble generation
+
+exec git init --initial-branch=main
+exec git config user.email "test@test.com"
+exec git config user.name "Test User"
+
+cp initial_doc.md doc.md
+exec git add doc.md
+
+stdin input.json
+exec klaudiush --hook-type PreToolUse
+! stderr 'MD001'
+! stderr 'heading-increment'
+
+-- initial_doc.md --
+# API Documentation
+
+## Endpoints
+
+### Users API
+
+#### GET /users
+
+Returns a list of users.
+
+#### POST /users
+
+Creates a new user.
+
+### Products API
+
+#### GET /products
+
+Returns a list of products.
+
+-- input.json --
+{
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "doc.md",
+    "old_string": "#### POST /users\n\nCreates a new user.",
+    "new_string": "#### POST /users\n\nCreates a new user.\n\nRequest body: JSON with name and email fields."
+  }
+}

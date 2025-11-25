@@ -22,6 +22,9 @@ const (
 
 	// minRegexMatches is the minimum number of matches expected from list marker regex
 	minRegexMatches = 2
+
+	// maxHeadingLevel is the maximum heading level supported by markdown (h1-h6)
+	maxHeadingLevel = 6
 )
 
 // ListItemInfo represents information about a single list item in the stack
@@ -50,6 +53,10 @@ type MarkdownState struct {
 	// Tracks if there was a blank line before the fragment start
 	// (needed for MD032 blanks-around-lists validation)
 	HadBlankLineBeforeFragment bool
+
+	// Heading context tracking for MD001 (heading-increment) validation
+	// Tracks the last heading level seen before the fragment
+	LastHeadingLevel int // 0 = no heading seen, 1-6 = h1-h6
 }
 
 // MarkdownAnalysisResult contains markdown validation warnings
@@ -91,10 +98,34 @@ var (
 	)
 	orderedListRegex   = regexp.MustCompile(`^([[:space:]]*)([0-9]+)\.[[:space:]]`)
 	unorderedListRegex = regexp.MustCompile(`^([[:space:]]*)([*+-])[[:space:]]`)
-	headerRegex        = regexp.MustCompile(`^#+[[:space:]]`)
+	headerRegex        = regexp.MustCompile(`^#{1,6}[[:space:]]`)
 	commentRegex       = regexp.MustCompile(`^<!--`)
 	emptyLineRegex     = regexp.MustCompile(`^[[:space:]]*$`)
 )
+
+// getHeadingLevel extracts the heading level from a line (1-6) or 0 if not a heading
+func getHeadingLevel(line string) int {
+	if !isHeader(line) {
+		return 0
+	}
+
+	level := 0
+
+	for _, ch := range line {
+		if ch != '#' {
+			break
+		}
+
+		level++
+	}
+
+	// Markdown only supports h1-h6
+	if level > maxHeadingLevel {
+		level = maxHeadingLevel
+	}
+
+	return level
+}
 
 // parseListMarker extracts list marker information from a line
 // Returns: isOrdered, orderNumber (or 0), marker string
@@ -116,30 +147,86 @@ func parseListMarker(line string) (bool, int, string) {
 }
 
 // GeneratePreamble creates synthetic markdown content that establishes the correct
-// list context for a fragment. This allows markdownlint to validate the fragment
-// with proper understanding of the list nesting and ordering.
+// context for a fragment. This allows markdownlint to validate the fragment
+// with proper understanding of heading hierarchy, list nesting, and ordering.
 //
 // Returns the preamble string and the number of lines in the preamble.
 func GeneratePreamble(state *MarkdownState) (string, int) {
-	if state == nil || !state.InList || len(state.ListStack) == 0 {
-		// No list context, but add a blank line if fragment doesn't start at beginning
-		if state != nil && state.StartLine > 0 {
-			// Add a header and blank line to satisfy MD041 (first-line-heading)
-			// and provide context for any content
-			return "# Preamble\n\n", preambleHeaderLines
-		}
-
+	if state == nil {
 		return "", 0
 	}
 
+	// Fragment doesn't start at beginning - need some context
+	if state.StartLine > 0 {
+		return generatePreambleWithContext(state)
+	}
+
+	return "", 0
+}
+
+// generatePreambleWithContext creates a preamble for fragments that start mid-file.
+// It establishes heading hierarchy and list context.
+func generatePreambleWithContext(state *MarkdownState) (string, int) {
 	var builder strings.Builder
 
 	lineCount := 0
 
-	// Start with a header to satisfy MD041
-	builder.WriteString("# Preamble\n\n")
+	// Generate heading hierarchy to establish context for MD001
+	// If the last heading before fragment was h2, we need h1 → h2
+	// If last heading was h3, we need h1 → h2 → h3
+	headingLines := generateHeadingHierarchy(&builder, state.LastHeadingLevel)
+	lineCount += headingLines
 
-	lineCount += preambleHeaderLines
+	// If no heading context was established, add a basic h1 for MD041
+	if headingLines == 0 {
+		builder.WriteString("# Preamble\n\n")
+
+		lineCount += preambleHeaderLines
+	}
+
+	// Generate list context if we're in a list
+	if state.InList && len(state.ListStack) > 0 {
+		listLines := generateListPreamble(&builder, state)
+
+		lineCount += listLines
+	}
+
+	// Add a blank line before the fragment if needed for MD032 (blanks-around-lists)
+	// However, don't add if we already generated heading hierarchy (which ends with blank)
+	// or list context, as that would create consecutive blank lines (MD012)
+	if state.HadBlankLineBeforeFragment && headingLines == 0 && !state.InList {
+		builder.WriteString("\n")
+
+		lineCount++
+	}
+
+	return builder.String(), lineCount
+}
+
+// generateHeadingHierarchy writes the heading hierarchy to establish context.
+// Returns the number of lines written.
+func generateHeadingHierarchy(builder *strings.Builder, lastHeadingLevel int) int {
+	if lastHeadingLevel <= 0 {
+		return 0
+	}
+
+	lineCount := 0
+
+	// Generate h1 through lastHeadingLevel
+	for level := 1; level <= lastHeadingLevel; level++ {
+		hashes := strings.Repeat("#", level)
+		fmt.Fprintf(builder, "%s Preamble H%d\n\n", hashes, level)
+
+		lineCount += 2 // heading + blank line
+	}
+
+	return lineCount
+}
+
+// generateListPreamble writes the list context preamble.
+// Returns the number of lines written.
+func generateListPreamble(builder *strings.Builder, state *MarkdownState) int {
+	lineCount := 0
 
 	// Generate list items for each level in the stack
 	// We need to establish context for each nesting level
@@ -151,7 +238,7 @@ func GeneratePreamble(state *MarkdownState) (string, int) {
 			// plus the current item N to establish context
 			// The fragment will continue from or after item N
 			for j := 1; j <= item.OrderNumber; j++ {
-				builder.WriteString(fmt.Sprintf("%s%d. Item %d\n", indent, j, j))
+				fmt.Fprintf(builder, "%s%d. Item %d\n", indent, j, j)
 
 				lineCount++
 			}
@@ -164,7 +251,7 @@ func GeneratePreamble(state *MarkdownState) (string, int) {
 			}
 		} else {
 			// For unordered lists, one item establishes context at this level
-			builder.WriteString(fmt.Sprintf("%s%s Item\n", indent, item.Marker))
+			fmt.Fprintf(builder, "%s%s Item\n", indent, item.Marker)
 
 			lineCount++
 
@@ -177,14 +264,7 @@ func GeneratePreamble(state *MarkdownState) (string, int) {
 		}
 	}
 
-	// Add a blank line before the fragment if needed for MD032
-	if state.HadBlankLineBeforeFragment {
-		builder.WriteString("\n")
-
-		lineCount++
-	}
-
-	return builder.String(), lineCount
+	return lineCount
 }
 
 // listTracker manages the list context stack during markdown parsing
@@ -325,11 +405,16 @@ func DetectMarkdownState(content string, upToLine int) MarkdownState {
 			continue
 		}
 
-		// Skip list tracking inside code blocks
+		// Skip tracking inside code blocks
 		if state.InCodeBlock {
 			tracker.processCodeBlockContent()
 
 			continue
+		}
+
+		// Track heading levels (outside code blocks)
+		if headingLevel := getHeadingLevel(line); headingLevel > 0 {
+			state.LastHeadingLevel = headingLevel
 		}
 
 		// Track empty lines

@@ -65,11 +65,40 @@ func ExtractEditFragment(
 		fragmentLines = append(fragmentLines, lines[i])
 	}
 
+	// Strip trailing empty lines to avoid false positives from files with trailing blank lines.
+	// These trailing blanks, when combined with preamble context, can create consecutive
+	// blank lines that trigger MD012 (no-multiple-blanks) errors.
+	fragmentLines = trimTrailingEmptyLines(fragmentLines)
+
 	// Apply the replacement to the fragment
 	fragment := strings.Join(fragmentLines, "\n")
 	fragment = strings.Replace(fragment, oldStr, newStr, 1)
 
 	return fragment
+}
+
+// trimTrailingEmptyLines removes excess trailing empty strings from a slice.
+// Keeps at most one trailing empty string (preserving normal trailing newline)
+// but removes additional ones (blank lines) that would cause MD012 errors
+// when combined with preamble context.
+func trimTrailingEmptyLines(lines []string) []string {
+	// Count trailing empty lines
+	trailingCount := 0
+
+	for i := len(lines) - 1; i >= 0; i-- {
+		if lines[i] != "" {
+			break
+		}
+
+		trailingCount++
+	}
+
+	// Keep at most one trailing empty line (normal trailing newline)
+	if trailingCount > 1 {
+		lines = lines[:len(lines)-(trailingCount-1)]
+	}
+
+	return lines
 }
 
 // getFragmentStartLine returns the line number where the fragment starts (0-indexed).

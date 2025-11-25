@@ -1,0 +1,43 @@
+# Test: Edit fragment starting with h3 heading passes validation
+# When editing markdown with ### heading, the validator should
+# establish heading hierarchy context (h1 → h2 → h3) to satisfy MD001
+# This tests the heading context preamble generation
+
+exec git init --initial-branch=main
+exec git config user.email "test@test.com"
+exec git config user.name "Test User"
+
+cp initial_doc.md doc.md
+exec git add doc.md
+
+stdin input.json
+exec klaudiush --hook-type PreToolUse
+! stderr 'MD001'
+! stderr 'heading-increment'
+
+-- initial_doc.md --
+# Implementation Plan
+
+## Phase 1
+
+Some content here.
+
+## Phase 2
+
+### Step 2.1
+
+Initial step content.
+
+### Step 2.2
+
+More content.
+
+-- input.json --
+{
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "doc.md",
+    "old_string": "### Step 2.2\n\nMore content.",
+    "new_string": "### Step 2.2\n\nUpdated content here."
+  }
+}

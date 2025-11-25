@@ -193,6 +193,7 @@ func (v *MarkdownValidator) getContentWithState(
 			"in_list", state.InList,
 			"list_depth", state.ListItemDepth,
 			"list_stack_len", len(state.ListStack),
+			"last_heading_level", state.LastHeadingLevel,
 		)
 
 		log.Debug("validating edit fragment with context", "fragment_lines", fragmentLineCount)

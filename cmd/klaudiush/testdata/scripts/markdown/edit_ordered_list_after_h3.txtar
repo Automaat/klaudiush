@@ -1,0 +1,47 @@
+# Test: Edit ordered list after h3 heading passes validation
+# When editing an ordered list in the middle of a document with h3 heading,
+# the validator should establish both heading context and ordered list context
+# This tests combined heading + ordered list preamble generation
+
+exec git init --initial-branch=main
+exec git config user.email "test@test.com"
+exec git config user.name "Test User"
+
+cp initial_doc.md doc.md
+exec git add doc.md
+
+stdin input.json
+exec klaudiush --hook-type PreToolUse
+! stderr 'MD001'
+! stderr 'MD029'
+
+-- initial_doc.md --
+# Build Process
+
+## Prerequisites
+
+Some requirements here.
+
+## Build Steps
+
+### Step-by-Step Instructions
+
+1. First step
+2. Second step
+3. Third step
+4. Fourth step
+5. Fifth step
+
+### Verification
+
+Check the output.
+
+-- input.json --
+{
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "doc.md",
+    "old_string": "4. Fourth step\n5. Fifth step",
+    "new_string": "4. Fourth step (updated)\n5. Fifth step (updated)"
+  }
+}
