@@ -112,7 +112,7 @@ func (l *FileLogger) With(keysAndValues ...any) Logger {
 
 // log writes a log entry to the file only (not stderr).
 func (l *FileLogger) log(level Level, msg string, keysAndValues ...any) {
-	timestamp := time.Now().UTC().Format("2006-01-02T15:04:05Z")
+	timestamp := time.Now().Local().Format("2006-01-02T15:04:05-07:00")
 
 	var builder strings.Builder
 
