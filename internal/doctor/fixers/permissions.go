@@ -94,7 +94,7 @@ func (f *PermissionsFixer) fixBinaryPermissions(interactive bool) error {
 }
 
 func (f *PermissionsFixer) fixConfigPermissions(interactive bool) error {
-	loader := config.NewLoader()
+	loader, _ := config.NewKoanfLoader()
 
 	// Check and fix global config
 	if loader.HasGlobalConfig() {

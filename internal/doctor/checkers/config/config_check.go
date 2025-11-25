@@ -12,13 +12,15 @@ import (
 
 // GlobalChecker checks the validity of the global configuration
 type GlobalChecker struct {
-	loader *config.Loader
+	loader *config.KoanfLoader
 }
 
 // NewGlobalChecker creates a new global config checker
 func NewGlobalChecker() *GlobalChecker {
+	loader, _ := config.NewKoanfLoader()
+
 	return &GlobalChecker{
-		loader: config.NewLoader(),
+		loader: loader,
 	}
 }
 
@@ -34,17 +36,18 @@ func (*GlobalChecker) Category() doctor.Category {
 
 // Check performs the global config validity check
 func (c *GlobalChecker) Check(_ context.Context) doctor.CheckResult {
-	cfg, err := c.loader.LoadGlobal()
-	if err != nil {
-		if errors.Is(err, config.ErrConfigNotFound) {
-			return doctor.FailWarning("Global config", "Not found (optional)").
-				WithDetails(
-					"Expected at: "+c.loader.GlobalConfigPath(),
-					"Create with: klaudiush init --global",
-				).
-				WithFixID("create_global_config")
-		}
+	if !c.loader.HasGlobalConfig() {
+		return doctor.FailWarning("Global config", "Not found (optional)").
+			WithDetails(
+				"Expected at: "+c.loader.GlobalConfigPath(),
+				"Create with: klaudiush init --global",
+			).
+			WithFixID("create_global_config")
+	}
 
+	// Try loading config to validate it
+	cfg, err := c.loader.Load(nil)
+	if err != nil {
 		if errors.Is(err, config.ErrInvalidTOML) {
 			return doctor.FailError("Global config", "Invalid TOML syntax").
 				WithDetails(
@@ -81,13 +84,15 @@ func (c *GlobalChecker) Check(_ context.Context) doctor.CheckResult {
 
 // ProjectChecker checks the validity of the project configuration
 type ProjectChecker struct {
-	loader *config.Loader
+	loader *config.KoanfLoader
 }
 
 // NewProjectChecker creates a new project config checker
 func NewProjectChecker() *ProjectChecker {
+	loader, _ := config.NewKoanfLoader()
+
 	return &ProjectChecker{
-		loader: config.NewLoader(),
+		loader: loader,
 	}
 }
 
@@ -103,13 +108,13 @@ func (*ProjectChecker) Category() doctor.Category {
 
 // Check performs the project config validity check
 func (c *ProjectChecker) Check(_ context.Context) doctor.CheckResult {
-	cfg, err := c.loader.LoadProject()
-	if err != nil {
-		if errors.Is(err, config.ErrConfigNotFound) {
-			// Project config not found is just informational since global config is the primary
-			return doctor.Skip("Project config", "Not found (using global config)")
-		}
+	if !c.loader.HasProjectConfig() {
+		// Project config not found is just informational since global config is the primary
+		return doctor.Skip("Project config", "Not found (using global config)")
+	}
 
+	cfg, err := c.loader.Load(nil)
+	if err != nil {
 		if errors.Is(err, config.ErrInvalidTOML) {
 			return doctor.FailError("Project config", "Invalid TOML syntax").
 				WithDetails(fmt.Sprintf("Error: %v", err))
@@ -139,13 +144,15 @@ func (c *ProjectChecker) Check(_ context.Context) doctor.CheckResult {
 
 // PermissionsChecker checks if config files have secure permissions
 type PermissionsChecker struct {
-	loader *config.Loader
+	loader *config.KoanfLoader
 }
 
 // NewPermissionsChecker creates a new permissions checker
 func NewPermissionsChecker() *PermissionsChecker {
+	loader, _ := config.NewKoanfLoader()
+
 	return &PermissionsChecker{
-		loader: config.NewLoader(),
+		loader: loader,
 	}
 }
 
@@ -169,36 +176,16 @@ func (c *PermissionsChecker) Check(_ context.Context) doctor.CheckResult {
 		return doctor.Skip("Config permissions", "No config files found")
 	}
 
-	// Try loading both - if they have permission issues, they'll fail
-	globalErr := error(nil)
-	if hasGlobal {
-		_, globalErr = c.loader.LoadGlobal()
-	}
-
-	projectErr := error(nil)
-	if hasProject {
-		_, projectErr = c.loader.LoadProject()
-	}
+	// Try loading - if they have permission issues, they'll fail
+	_, err := c.loader.Load(nil)
 
 	// Check for permission errors
-	hasPermissionError := false
-	details := []string{}
-
-	if globalErr != nil && errors.Is(globalErr, config.ErrInvalidPermissions) {
-		hasPermissionError = true
-
-		details = append(details, fmt.Sprintf("Global config: %v", globalErr))
-	}
-
-	if projectErr != nil && errors.Is(projectErr, config.ErrInvalidPermissions) {
-		hasPermissionError = true
-
-		details = append(details, fmt.Sprintf("Project config: %v", projectErr))
-	}
-
-	if hasPermissionError {
+	if err != nil && errors.Is(err, config.ErrInvalidPermissions) {
 		return doctor.FailError("Config permissions", "Insecure file permissions detected").
-			WithDetails(append(details, "Fix with: chmod 600 <config-file>")...).
+			WithDetails(
+				fmt.Sprintf("Error: %v", err),
+				"Fix with: chmod 600 <config-file>",
+			).
 			WithFixID("fix_config_permissions")
 	}
 

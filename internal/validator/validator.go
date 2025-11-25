@@ -133,7 +133,9 @@ func (v *BaseValidator) Name() string {
 }
 
 // Logger returns the logger.
-func (v *BaseValidator) Logger() logger.Logger { //nolint:ireturn // Logger is intended to return an interface for polymorphic use
+//
+//nolint:ireturn // interface for polymorphism
+func (v *BaseValidator) Logger() logger.Logger {
 	return v.logger
 }
 

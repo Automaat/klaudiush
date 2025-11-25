@@ -103,11 +103,13 @@ tasks:
   lint:
     desc: Run linters on all files
     cmds:
+      - mise exec -- golangci-lint cache clean
       - mise exec -- golangci-lint run
 
   lint:fix:
     desc: Run linters with auto-fix on all files
     cmds:
+      - mise exec -- golangci-lint cache clean
       - mise exec -- golangci-lint run --fix
 
 

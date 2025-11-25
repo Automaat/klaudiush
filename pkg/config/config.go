@@ -4,34 +4,34 @@ package config
 // Config represents the root configuration for klaudiush.
 type Config struct {
 	// Validators groups all validator configurations.
-	Validators *ValidatorsConfig `json:"validators,omitempty" toml:"validators"`
+	Validators *ValidatorsConfig `json:"validators,omitempty" koanf:"validators" toml:"validators"`
 
 	// Global settings that apply across all validators.
-	Global *GlobalConfig `json:"global,omitempty" toml:"global"`
+	Global *GlobalConfig `json:"global,omitempty" koanf:"global" toml:"global"`
 }
 
 // ValidatorsConfig groups all validator configurations by category.
 type ValidatorsConfig struct {
 	// Git validator configurations.
-	Git *GitConfig `json:"git,omitempty" toml:"git"`
+	Git *GitConfig `json:"git,omitempty" koanf:"git" toml:"git"`
 
 	// File validator configurations.
-	File *FileConfig `json:"file,omitempty" toml:"file"`
+	File *FileConfig `json:"file,omitempty" koanf:"file" toml:"file"`
 
 	// Notification validator configurations.
-	Notification *NotificationConfig `json:"notification,omitempty" toml:"notification"`
+	Notification *NotificationConfig `json:"notification,omitempty" koanf:"notification" toml:"notification"`
 }
 
 // GlobalConfig contains global settings that apply to all validators.
 type GlobalConfig struct {
 	// UseSDKGit controls whether to use the go-git SDK or CLI for git operations.
 	// Default: true (use SDK for better performance)
-	UseSDKGit *bool `json:"use_sdk_git,omitempty" toml:"use_sdk_git"`
+	UseSDKGit *bool `json:"use_sdk_git,omitempty" koanf:"use_sdk_git" toml:"use_sdk_git"`
 
 	// DefaultTimeout is the default timeout for all operations that support timeouts.
 	// Individual validator timeouts override this value.
 	// Default: "10s"
-	DefaultTimeout Duration `json:"default_timeout,omitempty" toml:"default_timeout"`
+	DefaultTimeout Duration `json:"default_timeout,omitempty" koanf:"default_timeout" toml:"default_timeout"`
 }
 
 // GetValidators returns the validators config, creating it if it doesn't exist.

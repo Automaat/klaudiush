@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 
+	internalconfig "github.com/smykla-labs/klaudiush/internal/config"
 	"github.com/smykla-labs/klaudiush/internal/config/factory"
-	"github.com/smykla-labs/klaudiush/internal/config/provider"
 	"github.com/smykla-labs/klaudiush/internal/dispatcher"
 	"github.com/smykla-labs/klaudiush/internal/parser"
 	"github.com/smykla-labs/klaudiush/pkg/config"
@@ -176,21 +176,19 @@ func loadConfig(log logger.Logger) (*config.Config, error) {
 	// Build flags map from CLI arguments
 	flags := buildFlagsMap()
 
-	// Create provider with all sources
-	prov, err := provider.NewDefaultProvider(flags)
+	// Create koanf loader
+	loader, err := internalconfig.NewKoanfLoader()
 	if err != nil {
-		return nil, fmt.Errorf("failed to create config provider: %w", err)
+		return nil, fmt.Errorf("failed to create config loader: %w", err)
 	}
 
-	// Load and merge configuration
-	cfg, err := prov.Load()
+	// Load configuration
+	cfg, err := loader.Load(flags)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
-	log.Debug("configuration loaded",
-		"sources", len(prov.Sources()),
-	)
+	log.Debug("configuration loaded")
 
 	return cfg, nil
 }

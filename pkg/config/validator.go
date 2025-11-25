@@ -6,12 +6,12 @@ type ValidatorConfig struct {
 	// Enabled controls whether the validator is active.
 	// When false, the validator is completely skipped.
 	// Default: true
-	Enabled *bool `json:"enabled,omitempty" toml:"enabled"`
+	Enabled *bool `json:"enabled,omitempty" koanf:"enabled" toml:"enabled"`
 
 	// Severity determines whether validation failures block the operation.
 	// "error" blocks the operation (default)
 	// "warning" only warns without blocking
-	Severity Severity `json:"severity,omitempty" toml:"severity"`
+	Severity Severity `json:"severity,omitempty" koanf:"severity" toml:"severity"`
 }
 
 // IsEnabled returns true if the validator is enabled.
