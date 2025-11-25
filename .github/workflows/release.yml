@@ -102,16 +102,10 @@ jobs:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           GPG_FINGERPRINT: ${{ steps.import-gpg.outputs.fingerprint }}
 
-      - name: Generate artifact attestations
+      - name: Generate build provenance attestations
         uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c # v1.4.3
         with:
-          subject-path: 'dist/*.tar.gz'
-
-      - name: Generate SBOM attestations
-        uses: actions/attest-sbom@5026d3663739160db546203eeaffa6aa1c51a4d6 # v1.4.2
-        with:
-          subject-path: 'dist/*.tar.gz'
-          sbom-path: 'dist/*.sbom.json'
+          subject-checksums: dist/checksums.txt
 
   # Run tests on all pushes to main (before release)
   test:
