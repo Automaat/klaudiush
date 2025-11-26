@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/smykla-labs/klaudiush/internal/git"
 	"github.com/smykla-labs/klaudiush/internal/validator"
 	gitvalidators "github.com/smykla-labs/klaudiush/internal/validators/git"
 	"github.com/smykla-labs/klaudiush/pkg/config"
@@ -10,13 +11,28 @@ import (
 
 // GitValidatorFactory creates git validators from configuration.
 type GitValidatorFactory struct {
-	cfg *config.Config
-	log logger.Logger
+	cfg       *config.Config
+	log       logger.Logger
+	gitRunner git.Runner
 }
 
 // NewGitValidatorFactory creates a new GitValidatorFactory.
 func NewGitValidatorFactory(log logger.Logger) *GitValidatorFactory {
 	return &GitValidatorFactory{log: log}
+}
+
+// getGitRunner returns the shared cached git runner, creating it lazily.
+//
+//nolint:ireturn,nolintlint // Method intentionally returns interface for flexibility
+func (f *GitValidatorFactory) getGitRunner() git.Runner {
+	if f.gitRunner == nil {
+		// Create a cached runner wrapping the default git runner.
+		// All validators created by this factory will share this cached runner,
+		// eliminating redundant git operations within a single dispatch.
+		f.gitRunner = git.NewCachedRunner(gitvalidators.NewGitRunner())
+	}
+
+	return f.gitRunner
 }
 
 // CreateValidators creates all git validators based on configuration.
@@ -56,7 +72,7 @@ func (f *GitValidatorFactory) createAddValidator(
 	cfg *config.AddValidatorConfig,
 ) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewAddValidator(f.log, nil, cfg),
+		Validator: gitvalidators.NewAddValidator(f.log, f.getGitRunner(), cfg),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("add"),
@@ -80,7 +96,7 @@ func (f *GitValidatorFactory) createCommitValidator(
 	cfg *config.CommitValidatorConfig,
 ) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewCommitValidator(f.log, nil, cfg),
+		Validator: gitvalidators.NewCommitValidator(f.log, f.getGitRunner(), cfg),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("commit"),
@@ -92,7 +108,7 @@ func (f *GitValidatorFactory) createPushValidator(
 	cfg *config.PushValidatorConfig,
 ) ValidatorWithPredicate {
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewPushValidator(f.log, nil, cfg),
+		Validator: gitvalidators.NewPushValidator(f.log, f.getGitRunner(), cfg),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("push"),
