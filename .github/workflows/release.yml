@@ -1,11 +1,12 @@
 # Release workflow for klaudiush
-# Triggers on push to main and creates releases using semantic-release + GoReleaser
+# Triggers daily at 2 AM UTC or manually, creates releases using semantic-release + GoReleaser
 
 name: Release
 
 on:
-  push:
-    branches: [main, beta, alpha]
+  schedule:
+    # Run daily at 2 AM UTC (during night for most US timezones)
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 permissions:
@@ -16,10 +17,39 @@ permissions:
   attestations: write
 
 jobs:
+  # Run tests first
+  test:
+    name: Test
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - name: Setup Go
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        with:
+          files: coverage.out
+          fail_ci_if_error: false
+        continue-on-error: true
+
   # Determine if a release should be created
   release:
     name: Semantic Release
     runs-on: ubuntu-24.04
+    needs: test
     outputs:
       new_release_published: ${{ steps.semantic.outputs.new_release_published }}
       new_release_version: ${{ steps.semantic.outputs.new_release_version }}
@@ -106,31 +136,3 @@ jobs:
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
         with:
           subject-checksums: dist/checksums.txt
-
-  # Run tests on all pushes to main (before release)
-  test:
-    name: Test
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
-
-      - name: Setup Go
-        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
-        with:
-          files: coverage.out
-          fail_ci_if_error: false
-        continue-on-error: true
