@@ -24,6 +24,9 @@ type ValidatorFactory interface {
 	// CreateNotificationValidators creates all notification validators from config.
 	CreateNotificationValidators(cfg *config.Config) []ValidatorWithPredicate
 
+	// CreateSecretsValidators creates all secrets validators from config.
+	CreateSecretsValidators(cfg *config.Config) []ValidatorWithPredicate
+
 	// CreateAll creates all validators from config.
 	CreateAll(cfg *config.Config) []ValidatorWithPredicate
 }
@@ -33,6 +36,7 @@ type DefaultValidatorFactory struct {
 	gitFactory          *GitValidatorFactory
 	fileFactory         *FileValidatorFactory
 	notificationFactory *NotificationValidatorFactory
+	secretsFactory      *SecretsValidatorFactory
 }
 
 // NewValidatorFactory creates a new DefaultValidatorFactory.
@@ -41,6 +45,7 @@ func NewValidatorFactory(log logger.Logger) *DefaultValidatorFactory {
 		gitFactory:          NewGitValidatorFactory(log),
 		fileFactory:         NewFileValidatorFactory(log),
 		notificationFactory: NewNotificationValidatorFactory(log),
+		secretsFactory:      NewSecretsValidatorFactory(log),
 	}
 }
 
@@ -63,6 +68,13 @@ func (f *DefaultValidatorFactory) CreateNotificationValidators(
 	return f.notificationFactory.CreateValidators(cfg)
 }
 
+// CreateSecretsValidators creates all secrets validators from config.
+func (f *DefaultValidatorFactory) CreateSecretsValidators(
+	cfg *config.Config,
+) []ValidatorWithPredicate {
+	return f.secretsFactory.CreateValidators(cfg)
+}
+
 // CreateAll creates all validators from config.
 func (f *DefaultValidatorFactory) CreateAll(cfg *config.Config) []ValidatorWithPredicate {
 	var all []ValidatorWithPredicate
@@ -70,6 +82,7 @@ func (f *DefaultValidatorFactory) CreateAll(cfg *config.Config) []ValidatorWithP
 	all = append(all, f.CreateGitValidators(cfg)...)
 	all = append(all, f.CreateFileValidators(cfg)...)
 	all = append(all, f.CreateNotificationValidators(cfg)...)
+	all = append(all, f.CreateSecretsValidators(cfg)...)
 
 	return all
 }

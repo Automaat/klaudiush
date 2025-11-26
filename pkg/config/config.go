@@ -20,6 +20,9 @@ type ValidatorsConfig struct {
 
 	// Notification validator configurations.
 	Notification *NotificationConfig `json:"notification,omitempty" koanf:"notification" toml:"notification"`
+
+	// Secrets validator configurations.
+	Secrets *SecretsConfig `json:"secrets,omitempty" koanf:"secrets" toml:"secrets"`
 }
 
 // GlobalConfig contains global settings that apply to all validators.
@@ -102,4 +105,13 @@ func (v *ValidatorsConfig) GetNotification() *NotificationConfig {
 	}
 
 	return v.Notification
+}
+
+// GetSecrets returns the secrets validators config, creating it if it doesn't exist.
+func (v *ValidatorsConfig) GetSecrets() *SecretsConfig {
+	if v.Secrets == nil {
+		v.Secrets = &SecretsConfig{}
+	}
+
+	return v.Secrets
 }
