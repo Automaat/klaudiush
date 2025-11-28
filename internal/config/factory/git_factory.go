@@ -2,6 +2,7 @@ package factory
 
 import (
 	"github.com/smykla-labs/klaudiush/internal/git"
+	"github.com/smykla-labs/klaudiush/internal/rules"
 	"github.com/smykla-labs/klaudiush/internal/validator"
 	gitvalidators "github.com/smykla-labs/klaudiush/internal/validators/git"
 	"github.com/smykla-labs/klaudiush/pkg/config"
@@ -11,9 +12,10 @@ import (
 
 // GitValidatorFactory creates git validators from configuration.
 type GitValidatorFactory struct {
-	cfg       *config.Config
-	log       logger.Logger
-	gitRunner git.Runner
+	cfg        *config.Config
+	log        logger.Logger
+	gitRunner  git.Runner
+	ruleEngine *rules.RuleEngine
 }
 
 // NewGitValidatorFactory creates a new GitValidatorFactory.
@@ -33,6 +35,11 @@ func (f *GitValidatorFactory) getGitRunner() git.Runner {
 	}
 
 	return f.gitRunner
+}
+
+// SetRuleEngine sets the rule engine for the factory.
+func (f *GitValidatorFactory) SetRuleEngine(engine *rules.RuleEngine) {
+	f.ruleEngine = engine
 }
 
 // CreateValidators creates all git validators based on configuration.
@@ -75,8 +82,17 @@ func (f *GitValidatorFactory) CreateValidators(cfg *config.Config) []ValidatorWi
 func (f *GitValidatorFactory) createAddValidator(
 	cfg *config.AddValidatorConfig,
 ) ValidatorWithPredicate {
+	var ruleAdapter *rules.RuleValidatorAdapter
+	if f.ruleEngine != nil {
+		ruleAdapter = rules.NewRuleValidatorAdapter(
+			f.ruleEngine,
+			rules.ValidatorGitAdd,
+			rules.WithAdapterLogger(f.log),
+		)
+	}
+
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewAddValidator(f.log, f.getGitRunner(), cfg),
+		Validator: gitvalidators.NewAddValidator(f.log, f.getGitRunner(), cfg, ruleAdapter),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("add"),
@@ -87,8 +103,17 @@ func (f *GitValidatorFactory) createAddValidator(
 func (f *GitValidatorFactory) createNoVerifyValidator(
 	cfg *config.NoVerifyValidatorConfig,
 ) ValidatorWithPredicate {
+	var ruleAdapter *rules.RuleValidatorAdapter
+	if f.ruleEngine != nil {
+		ruleAdapter = rules.NewRuleValidatorAdapter(
+			f.ruleEngine,
+			rules.ValidatorGitNoVerify,
+			rules.WithAdapterLogger(f.log),
+		)
+	}
+
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewNoVerifyValidator(f.log, cfg),
+		Validator: gitvalidators.NewNoVerifyValidator(f.log, cfg, ruleAdapter),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("commit"),
@@ -99,8 +124,17 @@ func (f *GitValidatorFactory) createNoVerifyValidator(
 func (f *GitValidatorFactory) createCommitValidator(
 	cfg *config.CommitValidatorConfig,
 ) ValidatorWithPredicate {
+	var ruleAdapter *rules.RuleValidatorAdapter
+	if f.ruleEngine != nil {
+		ruleAdapter = rules.NewRuleValidatorAdapter(
+			f.ruleEngine,
+			rules.ValidatorGitCommit,
+			rules.WithAdapterLogger(f.log),
+		)
+	}
+
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewCommitValidator(f.log, f.getGitRunner(), cfg),
+		Validator: gitvalidators.NewCommitValidator(f.log, f.getGitRunner(), cfg, ruleAdapter),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("commit"),
@@ -111,8 +145,17 @@ func (f *GitValidatorFactory) createCommitValidator(
 func (f *GitValidatorFactory) createPushValidator(
 	cfg *config.PushValidatorConfig,
 ) ValidatorWithPredicate {
+	var ruleAdapter *rules.RuleValidatorAdapter
+	if f.ruleEngine != nil {
+		ruleAdapter = rules.NewRuleValidatorAdapter(
+			f.ruleEngine,
+			rules.ValidatorGitPush,
+			rules.WithAdapterLogger(f.log),
+		)
+	}
+
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewPushValidator(f.log, f.getGitRunner(), cfg),
+		Validator: gitvalidators.NewPushValidator(f.log, f.getGitRunner(), cfg, ruleAdapter),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.GitSubcommandIs("push"),
@@ -123,8 +166,17 @@ func (f *GitValidatorFactory) createPushValidator(
 func (f *GitValidatorFactory) createPRValidator(
 	cfg *config.PRValidatorConfig,
 ) ValidatorWithPredicate {
+	var ruleAdapter *rules.RuleValidatorAdapter
+	if f.ruleEngine != nil {
+		ruleAdapter = rules.NewRuleValidatorAdapter(
+			f.ruleEngine,
+			rules.ValidatorGitPR,
+			rules.WithAdapterLogger(f.log),
+		)
+	}
+
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewPRValidator(cfg, f.log),
+		Validator: gitvalidators.NewPRValidator(cfg, f.log, ruleAdapter),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.ToolTypeIs(hook.ToolTypeBash),
@@ -136,8 +188,17 @@ func (f *GitValidatorFactory) createPRValidator(
 func (f *GitValidatorFactory) createBranchValidator(
 	cfg *config.BranchValidatorConfig,
 ) ValidatorWithPredicate {
+	var ruleAdapter *rules.RuleValidatorAdapter
+	if f.ruleEngine != nil {
+		ruleAdapter = rules.NewRuleValidatorAdapter(
+			f.ruleEngine,
+			rules.ValidatorGitBranch,
+			rules.WithAdapterLogger(f.log),
+		)
+	}
+
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewBranchValidator(cfg, f.log),
+		Validator: gitvalidators.NewBranchValidator(cfg, f.log, ruleAdapter),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.Or(
@@ -161,8 +222,17 @@ func (f *GitValidatorFactory) createBranchValidator(
 func (f *GitValidatorFactory) createMergeValidator(
 	cfg *config.MergeValidatorConfig,
 ) ValidatorWithPredicate {
+	var ruleAdapter *rules.RuleValidatorAdapter
+	if f.ruleEngine != nil {
+		ruleAdapter = rules.NewRuleValidatorAdapter(
+			f.ruleEngine,
+			rules.ValidatorGitMerge,
+			rules.WithAdapterLogger(f.log),
+		)
+	}
+
 	return ValidatorWithPredicate{
-		Validator: gitvalidators.NewMergeValidator(f.log, f.getGitRunner(), cfg),
+		Validator: gitvalidators.NewMergeValidator(f.log, f.getGitRunner(), cfg, ruleAdapter),
 		Predicate: validator.And(
 			validator.EventTypeIs(hook.EventTypePreToolUse),
 			validator.ToolTypeIs(hook.ToolTypeBash),

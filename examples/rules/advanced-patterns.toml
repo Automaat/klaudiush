@@ -1,0 +1,390 @@
+# Example: Advanced Pattern Matching
+#
+# Demonstrates various pattern matching techniques including glob patterns,
+# regex patterns, and combining multiple conditions.
+#
+# Usage:
+#   Copy to ~/.klaudiush/config.toml (global) or .klaudiush/config.toml (project)
+
+[rules]
+enabled = true
+stop_on_first_match = true
+
+# -------------------------------------------------------------------
+# GLOB PATTERNS
+# -------------------------------------------------------------------
+
+# Match files in any subdirectory
+[[rules.rules]]
+name = "warn-generated-files"
+description = "Warn when editing generated files"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "file.*"
+file_pattern = "**/generated/**"
+
+[rules.rules.action]
+type = "warn"
+message = "Editing generated files. These may be overwritten."
+
+# Match specific file extensions
+[[rules.rules]]
+name = "warn-vendor-files"
+description = "Warn when editing vendor files"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "file.*"
+file_pattern = "**/vendor/**"
+
+[rules.rules.action]
+type = "warn"
+message = "Editing vendor files. Consider updating dependencies instead."
+
+# Match brace expansion
+[[rules.rules]]
+name = "enforce-infrastructure-review"
+description = "Warn about infrastructure changes"
+enabled = true
+priority = 50
+
+[rules.rules.match]
+validator_type = "file.*"
+file_pattern = "**/*.{tf,tfvars}"
+
+[rules.rules.action]
+type = "warn"
+message = "Infrastructure file modified. Ensure changes are reviewed."
+
+# -------------------------------------------------------------------
+# REGEX PATTERNS
+# -------------------------------------------------------------------
+
+# Match semantic version branches (regex detected via ^, $, [])
+[[rules.rules]]
+name = "protect-release-branches"
+description = "Block direct pushes to release branches"
+enabled = true
+priority = 200
+
+[rules.rules.match]
+validator_type = "git.push"
+branch_pattern = "^release/v[0-9]+\\.[0-9]+$"
+
+[rules.rules.action]
+type = "block"
+message = "Direct push to release branch is not allowed. Use cherry-pick workflow."
+reference = "GIT020"
+
+# Match hotfix branches
+[[rules.rules]]
+name = "warn-hotfix-push"
+description = "Warn about hotfix pushes"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "git.push"
+branch_pattern = "^hotfix/.*$"
+
+[rules.rules.action]
+type = "warn"
+message = "Pushing to hotfix branch. Ensure proper testing before merge."
+
+# Match dangerous rm commands (regex detected via \\s+)
+[[rules.rules]]
+name = "block-dangerous-rm"
+description = "Block dangerous rm -rf commands"
+enabled = true
+priority = 1000
+
+[rules.rules.match]
+validator_type = "*"
+tool_type = "Bash"
+command_pattern = "rm\\s+-rf\\s+/"
+
+[rules.rules.action]
+type = "block"
+message = "Dangerous rm -rf command blocked for safety."
+reference = "SEC001"
+
+# Match force push commands
+[[rules.rules]]
+name = "warn-force-push"
+description = "Warn about force push"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "git.push"
+command_pattern = ".*--force.*"
+
+[rules.rules.action]
+type = "warn"
+message = "Force push detected. Ensure you have the latest changes."
+
+# -------------------------------------------------------------------
+# COMBINED CONDITIONS (AND logic)
+# -------------------------------------------------------------------
+
+# Block pushes to upstream on protected branches
+[[rules.rules]]
+name = "protect-upstream-main"
+description = "Block push to upstream/main"
+enabled = true
+priority = 300
+
+[rules.rules.match]
+validator_type = "git.push"
+remote = "upstream"
+branch_pattern = "main"
+
+[rules.rules.action]
+type = "block"
+message = "Push to upstream/main is blocked. Use pull request workflow."
+
+# Require review for production configs
+[[rules.rules]]
+name = "warn-production-config"
+description = "Warn about production config changes"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "file.*"
+file_pattern = "**/config/prod*"
+
+[rules.rules.action]
+type = "warn"
+message = "Production configuration changed. Ensure proper review."
+
+# -------------------------------------------------------------------
+# CONTENT PATTERNS (always regex)
+# -------------------------------------------------------------------
+
+# Detect hardcoded localhost
+[[rules.rules]]
+name = "warn-localhost-hardcode"
+description = "Warn about hardcoded localhost"
+enabled = true
+priority = 50
+
+[rules.rules.match]
+validator_type = "file.*"
+content_pattern = "localhost:[0-9]+"
+file_pattern = "**/*.{go,js,ts,py}"
+
+[rules.rules.action]
+type = "warn"
+message = "Hardcoded localhost detected. Consider using configuration."
+
+# Detect debug statements
+[[rules.rules]]
+name = "warn-debug-statements"
+description = "Warn about debug statements"
+enabled = true
+priority = 50
+
+[rules.rules.match]
+validator_type = "file.*"
+content_pattern = "console\\.log|fmt\\.Print|print\\("
+file_pattern = "**/*.{go,js,ts,py}"
+
+[rules.rules.action]
+type = "warn"
+message = "Debug statement detected. Remove before committing."
+
+# -------------------------------------------------------------------
+# NEGATION PATTERNS (! prefix)
+# -------------------------------------------------------------------
+
+# Match all files except .tmp files
+[[rules.rules]]
+name = "ignore-tmp-files"
+description = "Skip validation for temporary files"
+enabled = true
+priority = 500
+
+[rules.rules.match]
+validator_type = "file.*"
+file_pattern = "!*.tmp"
+
+[rules.rules.action]
+type = "allow"
+message = "Temporary files are allowed"
+
+# Match all branches except main and develop
+[[rules.rules]]
+name = "allow-feature-branches"
+description = "Allow push to non-protected branches"
+enabled = true
+priority = 400
+
+[rules.rules.match]
+validator_type = "git.push"
+branch_pattern = "!{main,develop}"
+
+[rules.rules.action]
+type = "allow"
+
+# -------------------------------------------------------------------
+# CASE-INSENSITIVE PATTERNS
+# -------------------------------------------------------------------
+
+# Match markdown files regardless of extension case
+[[rules.rules]]
+name = "validate-markdown-case-insensitive"
+description = "Validate markdown files with any case extension"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "file.markdown"
+file_pattern = "*.Md"
+case_insensitive = true  # Matches .md, .MD, .Md
+
+[rules.rules.action]
+type = "warn"
+message = "Markdown file detected - ensure proper formatting"
+
+# Match config files regardless of case
+[[rules.rules]]
+name = "warn-config-changes"
+description = "Warn about config changes (case-insensitive)"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "file.*"
+file_pattern = "*config*"
+case_insensitive = true  # Matches Config, CONFIG, config
+
+[rules.rules.action]
+type = "warn"
+message = "Configuration file modified - verify changes"
+
+# -------------------------------------------------------------------
+# MULTIPLE PATTERNS (any/all)
+# -------------------------------------------------------------------
+
+# Match any of multiple file types (OR logic)
+[[rules.rules]]
+name = "lint-source-files"
+description = "Warn about source file changes"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "file.*"
+file_patterns = ["*.go", "*.ts", "*.js", "*.py"]
+pattern_mode = "any"  # Match ANY of these patterns (default)
+
+[rules.rules.action]
+type = "warn"
+message = "Source file modified - ensure tests pass"
+
+# Match all conditions (AND logic)
+[[rules.rules]]
+name = "strict-feature-branches"
+description = "Enforce naming on feature branches"
+enabled = true
+priority = 200
+
+[rules.rules.match]
+validator_type = "git.push"
+branch_patterns = ["feat/*", "!*-wip"]  # Must start with feat/ AND not end with -wip
+pattern_mode = "all"
+
+[rules.rules.action]
+type = "allow"
+message = "Feature branch (non-WIP) push allowed"
+
+# Match multiple repos (OR logic)
+[[rules.rules]]
+name = "warn-org-repos"
+description = "Warn about pushes to org repos"
+enabled = true
+priority = 100
+
+[rules.rules.match]
+validator_type = "git.push"
+repo_patterns = ["**/kong/**", "**/kuma/**", "**/kumahq/**"]
+pattern_mode = "any"
+
+[rules.rules.action]
+type = "warn"
+message = "Pushing to organization repository - ensure CI passes"
+
+# -------------------------------------------------------------------
+# COMBINED ADVANCED FEATURES
+# -------------------------------------------------------------------
+
+# Case-insensitive multi-pattern matching
+[[rules.rules]]
+name = "allow-doc-files"
+description = "Allow documentation files with any case"
+enabled = true
+priority = 600
+
+[rules.rules.match]
+validator_type = "file.*"
+file_patterns = ["*.Md", "*.Rst", "*.Txt"]
+case_insensitive = true
+pattern_mode = "any"
+
+[rules.rules.action]
+type = "allow"
+message = "Documentation file - validation skipped"
+
+# Negated multi-patterns
+[[rules.rules]]
+name = "source-except-generated"
+description = "Warn about source files (excluding generated)"
+enabled = true
+priority = 150
+
+[rules.rules.match]
+validator_type = "file.*"
+file_patterns = ["*.go", "!*_mock.go", "!*_gen.go", "!*.pb.go"]
+pattern_mode = "all"
+
+[rules.rules.action]
+type = "warn"
+message = "Non-generated source file modified"
+
+# -------------------------------------------------------------------
+# PRIORITY-BASED EXCEPTIONS
+# -------------------------------------------------------------------
+
+# Allow all operations in development branch (high priority exception)
+[[rules.rules]]
+name = "allow-dev-branch"
+description = "Allow all operations in development branch"
+enabled = false  # Enable if needed
+priority = 10000  # Highest priority
+
+[rules.rules.match]
+validator_type = "*"
+branch_pattern = "dev"
+
+[rules.rules.action]
+type = "allow"
+message = "Development branch - all operations allowed"
+
+# Allow specific user patterns (disabled by default)
+[[rules.rules]]
+name = "allow-admin-operations"
+description = "Allow admin operations"
+enabled = false  # Enable and customize as needed
+priority = 9000
+
+[rules.rules.match]
+validator_type = "*"
+repo_pattern = "**/admin/**"
+
+[rules.rules.action]
+type = "allow"
+message = "Admin operation allowed"

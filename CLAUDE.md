@@ -20,6 +20,10 @@ Guidance for Claude Code (claude.ai/code) when working with this repository.
 ./bin/klaudiush doctor --fix      # auto-fix issues
 ./bin/klaudiush doctor --category binary,hook  # filter by category
 
+# Debug (inspect configuration)
+./bin/klaudiush debug rules                       # show all rules
+./bin/klaudiush debug rules --validator git.push  # filter by validator
+
 # Build & Install
 task build                        # dev build
 task build:prod                   # prod build (validates signoff)
@@ -71,6 +75,16 @@ Represents tool invocations: `EventType` (PreToolUse/PostToolUse/Notification), 
 **Creating**: 1) Embed `BaseValidator`, 2) Implement `Validate(ctx *hook.Context)`, 3) Register in `main.go:registerValidators()`
 
 **Error Format Policy**: Validators return errors with structured format including error codes (GIT001-GIT018, FILE001-FILE005, SEC001-SEC005, SHELL001-SHELL005), automatic fix hints from suggestions registry, and documentation URLs (`https://klaudiu.sh/{CODE}`). Use `FailWithRef(ref, msg)` to auto-populate fix hints - NEVER set `FixHint` manually. Error priority determines which reference is shown when multiple rules fail. See `.claude/validator-error-format-policy.md` for comprehensive guide.
+
+### Rule Engine (`internal/rules/`)
+
+Dynamic validation configuration without modifying code. Rules allow users to define custom validation behavior via TOML configuration.
+
+**Components**: Pattern system (glob/regex auto-detection via `gobwas/glob`), Matchers (repo/remote/branch/file/content/command), Registry (priority sorting, merge), Evaluator (first-match semantics), Engine (main entry point), ValidatorAdapter (bridges with validators).
+
+**Usage**: Validators use `RuleValidatorAdapter.CheckRules()` before built-in logic. If rule matches, returns validator.Result; otherwise continues with built-in validation.
+
+**Documentation**: See `docs/RULES_GUIDE.md` for complete configuration guide with examples. Example configurations in `examples/rules/`.
 
 ### Parsers
 
@@ -160,6 +174,8 @@ Framework: Ginkgo/Gomega. 336 tests. Run: `mise exec -- go test -v ./pkg/parser 
 
 **Linters** (`.golangci.yml`): Nil safety (nilnesserr, govet), completeness (exhaustive, gochecksumtype), quality (gocognit, goconst, cyclop, dupl)
 
+**Error Handling**: NEVER use `errors` or `github.com/pkg/errors`. ALWAYS use `github.com/cockroachdb/errors` for error creation and wrapping
+
 ## Exit Codes
 
 - `0`: Allowed (pass/warn/no match)
@@ -199,6 +215,7 @@ Additional implementation details and policies are in `.claude/` files:
 - `session-fuzzing.md` - Go native fuzzing for parsers, fuzz targets by risk, type limitations, progress tracking in `tmp/fuzzing/`
 - `session-github-quality.md` - OSSF Scorecard, branch rulesets API, Renovate version sync (customManagers:githubActionsVersions), smyklot bot workflows
 - `session-codeql-regex-security.md` - CodeQL regex anchor fixes (CWE-020), URL pattern anchoring with `(?:^|://|[^/a-zA-Z0-9])`, bounded quantifiers for ReDoS, prefix consumption in matches, GitHub push protection bypass for test secrets, PR review thread resolution
+- `session-rule-engine.md` - Rule engine implementation details (covered more comprehensively in `docs/RULES_GUIDE.md`)
 
 ## Plugin Documentation
 
@@ -209,3 +226,13 @@ Comprehensive plugin development guide available in `docs/PLUGIN_GUIDE.md` with 
 - **gRPC plugins** (`examples/plugins/grpc-go/`) - Persistent server plugins with hot-reload capability
 
 Each example includes source code, configuration, testing instructions, and customization guidance.
+
+## Rules Documentation
+
+Dynamic validation rules guide available in `docs/RULES_GUIDE.md` with example configurations in `examples/rules/`:
+
+- **organization.toml** - Organization-specific rules (remote restrictions, branch protection)
+- **secrets-allow-list.toml** - Allow list for test fixtures and mock data
+- **advanced-patterns.toml** - Complex pattern matching examples (glob, regex, combined conditions)
+
+Debug rules with: `klaudiush debug rules`
