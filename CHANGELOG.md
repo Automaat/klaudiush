@@ -5,6 +5,13 @@ All notable changes to klaudiush will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0](https://github.com/smykla-labs/klaudiush/compare/v1.6.0...v1.7.0) (2025-12-01)
+
+### Features
+
+* **validators:** add gofumpt validator ([#125](https://github.com/smykla-labs/klaudiush/issues/125)) ([adc9b2d](https://github.com/smykla-labs/klaudiush/commit/adc9b2d710bd35ada9ecf9c86368df4191278f3f))
+* **validators:** add ruff Python linter support ([#124](https://github.com/smykla-labs/klaudiush/issues/124)) ([58aade7](https://github.com/smykla-labs/klaudiush/commit/58aade739cca975651796bd38ea50a493b213610))
+
 ## [1.6.0](https://github.com/smykla-labs/klaudiush/compare/v1.5.0...v1.6.0) (2025-11-30)
 
 ### Features
