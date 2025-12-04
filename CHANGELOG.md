@@ -5,6 +5,26 @@ All notable changes to klaudiush will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0](https://github.com/smykla-labs/klaudiush/compare/v1.11.2...v1.12.0) (2025-12-04)
+
+### Features
+
+* **crashdump:** add panic diagnostic system ([#178](https://github.com/smykla-labs/klaudiush/issues/178)) ([3ea76b5](https://github.com/smykla-labs/klaudiush/commit/3ea76b5a521a122126ea771bcfde038fa738400b))
+* **debug:** add config dump command ([#172](https://github.com/smykla-labs/klaudiush/issues/172)) ([40ff254](https://github.com/smykla-labs/klaudiush/commit/40ff25494736b1241a8f071f883be4c55b43392f))
+* **session:** prevent cascading failures ([#175](https://github.com/smykla-labs/klaudiush/issues/175)) ([910dc41](https://github.com/smykla-labs/klaudiush/commit/910dc41f6f19d2278a5d063b2a64826dafdb6da7))
+* **shell:** add comprehensive backtick validator ([#167](https://github.com/smykla-labs/klaudiush/issues/167)) ([44f2a45](https://github.com/smykla-labs/klaudiush/commit/44f2a45a73f5fc9e0b61ff954a4ff50cffc82cee))
+
+### Bug Fixes
+
+* **config:** add koanf squash tag for embeds ([#183](https://github.com/smykla-labs/klaudiush/issues/183)) ([6d981e1](https://github.com/smykla-labs/klaudiush/commit/6d981e14b6a591addd3fcaafdfa8bf6cfc1b24ef))
+* **deps:** update module github.com/go-git/go-git/v6 to v6.0.0-20251204115828-b5fe4178875e ([#176](https://github.com/smykla-labs/klaudiush/issues/176)) ([87680b2](https://github.com/smykla-labs/klaudiush/commit/87680b2ce67526278dc6dd4822cdbde6a06f5dd9))
+* **deps:** update module github.com/google/go-github/v79 to v80 ([#181](https://github.com/smykla-labs/klaudiush/issues/181)) ([120b567](https://github.com/smykla-labs/klaudiush/commit/120b567a955079998810183b79d5c5bae37ba27a))
+* **deps:** update module github.com/google/go-github/v79 to v80 ([#184](https://github.com/smykla-labs/klaudiush/issues/184)) ([5cead5c](https://github.com/smykla-labs/klaudiush/commit/5cead5c744122dde75de8670a16d6139bb6ccc4d))
+* **deps:** update module github.com/spf13/cobra to v1.10.2 ([#162](https://github.com/smykla-labs/klaudiush/issues/162)) ([76cd860](https://github.com/smykla-labs/klaudiush/commit/76cd860bbc65dcd11d65b83a8df6f4d18f9bc30e))
+* **parser:** preserve first -m flag value ([#159](https://github.com/smykla-labs/klaudiush/issues/159)) ([6789adb](https://github.com/smykla-labs/klaudiush/commit/6789adb6fe4400c0d68c9f03cf783c9f22cd01af))
+* **parser:** track directory context from cd ([#174](https://github.com/smykla-labs/klaudiush/issues/174)) ([897686a](https://github.com/smykla-labs/klaudiush/commit/897686a46c5264de98e50a9c972bb435be063ac7))
+* **session:** prevent unpoison deadlock ([#182](https://github.com/smykla-labs/klaudiush/issues/182)) ([4f35dcd](https://github.com/smykla-labs/klaudiush/commit/4f35dcdb6bb36836e4cc1e11331d23b32080f725))
+
 ## [1.11.2](https://github.com/smykla-labs/klaudiush/compare/v1.11.1...v1.11.2) (2025-12-04)
 
 ### Bug Fixes
