@@ -5,6 +5,13 @@ All notable changes to klaudiush will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.4](https://github.com/smykla-labs/klaudiush/compare/v1.12.3...v1.12.4) (2025-12-10)
+
+### Bug Fixes
+
+* **deps:** update module github.com/onsi/ginkgo/v2 to v2.27.3 ([#211](https://github.com/smykla-labs/klaudiush/issues/211)) ([ac4f121](https://github.com/smykla-labs/klaudiush/commit/ac4f121810c835e55111cb1204c338dd5a89b772))
+* **deps:** update module golang.org/x/term to v0.38.0 ([#206](https://github.com/smykla-labs/klaudiush/issues/206)) ([a6c03ce](https://github.com/smykla-labs/klaudiush/commit/a6c03ce8f7c0bf53e16eec6a153037bb0913f683))
+
 ## [1.12.3](https://github.com/smykla-labs/klaudiush/compare/v1.12.2...v1.12.3) (2025-12-09)
 
 ### Bug Fixes
