@@ -5,6 +5,12 @@ All notable changes to klaudiush will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.7](https://github.com/smykla-labs/klaudiush/compare/v1.12.6...v1.12.7) (2025-12-12)
+
+### Bug Fixes
+
+* **nix:** fix hash update script bugs ([d961e09](https://github.com/smykla-labs/klaudiush/commit/d961e096715215338c32bc5d44b51e3838d1c778))
+
 ## [1.12.6](https://github.com/smykla-labs/klaudiush/compare/v1.12.5...v1.12.6) (2025-12-12)
 
 ### Bug Fixes
